@@ -90,7 +90,7 @@ typedef struct
   cl_program program;
   cl_kernel  accelerate_flow;
   cl_kernel  propagate;
-  cl_kernel rebound;
+  cl_kernel  rebound;
 
   cl_mem cells;
   cl_mem tmp_cells;
@@ -333,7 +333,7 @@ int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obsta
   checkError(err, "enqueueing ewbound kernel", __LINE__);
 
   // Wait for kernel to finish
-  err = clFinish(ocl.rebound);
+  err = clFinish(ocl.queue);
   checkError(err, "waiting for rebound kernel", __LINE__);
 
   return EXIT_SUCCESS;
