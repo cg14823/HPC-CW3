@@ -72,24 +72,21 @@ kernel void propagate(global t_speed* cells,
 kernel void rebound(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles,int nx, int ny)
 {
   /* loop over the cells in the grid */
-  for (int ii = 0; ii < ny; ii++)
+  int jj = get_global_id(0);
+  int ii = get_global_id(1);
+
+  /* if the cell contains an obstacle */
+  if (obstacles[ii * nx + jj])
   {
-    for (int jj = 0; jj < nx; jj++)
-    {
-      /* if the cell contains an obstacle */
-      if (obstacles[ii * nx + jj])
-      {
-        /* called after propagate, so taking values from scratch space
-        ** mirroring, and writing into main grid */
-        cells[ii * nx + jj].speeds[1] = tmp_cells[ii * nx + jj].speeds[3];
-        cells[ii * nx + jj].speeds[2] = tmp_cells[ii * nx + jj].speeds[4];
-        cells[ii * nx + jj].speeds[3] = tmp_cells[ii * nx + jj].speeds[1];
-        cells[ii * nx + jj].speeds[4] = tmp_cells[ii * nx + jj].speeds[2];
-        cells[ii * nx + jj].speeds[5] = tmp_cells[ii * nx + jj].speeds[7];
-        cells[ii * nx + jj].speeds[6] = tmp_cells[ii * nx + jj].speeds[8];
-        cells[ii * nx + jj].speeds[7] = tmp_cells[ii * nx + jj].speeds[5];
-        cells[ii * nx + jj].speeds[8] = tmp_cells[ii * nx + jj].speeds[6];
-      }
-    }
+    /* called after propagate, so taking values from scratch space
+    ** mirroring, and writing into main grid */
+    cells[ii * nx + jj].speeds[1] = tmp_cells[ii * nx + jj].speeds[3];
+    cells[ii * nx + jj].speeds[2] = tmp_cells[ii * nx + jj].speeds[4];
+    cells[ii * nx + jj].speeds[3] = tmp_cells[ii * nx + jj].speeds[1];
+    cells[ii * nx + jj].speeds[4] = tmp_cells[ii * nx + jj].speeds[2];
+    cells[ii * nx + jj].speeds[5] = tmp_cells[ii * nx + jj].speeds[7];
+    cells[ii * nx + jj].speeds[6] = tmp_cells[ii * nx + jj].speeds[8];
+    cells[ii * nx + jj].speeds[7] = tmp_cells[ii * nx + jj].speeds[5];
+    cells[ii * nx + jj].speeds[8] = tmp_cells[ii * nx + jj].speeds[6];
   }
 }
