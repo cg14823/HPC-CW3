@@ -313,6 +313,7 @@ int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl oc
 
 int rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl)
 {
+  cl_int err;
   // Set kernel arguments
   err = clSetKernelArg(ocl.rebound, 0, sizeof(cl_mem), &ocl.cells);
   checkError(err, "setting rebound arg 0", __LINE__);
