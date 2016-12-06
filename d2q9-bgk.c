@@ -238,7 +238,7 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
   accelerate_flow(params, cells, obstacles, ocl);
   propagate(params, cells, tmp_cells, ocl);
   collision_rebound(params, cells, tmp_cells, obstacles, ocl);
-  
+
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
     sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
@@ -337,75 +337,6 @@ int collision_rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, 
 
 int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl)
 {
-  const float w0 = 4.0f / 9.0f;  /* weighting factor */
-  const float w1 = 1.0f / 9.0f;  /* weighting factor */
-  const float w2 = 1.0f / 36.0f; /* weighting factor */
-
-  /* loop over the cells in the grid
-  ** NB the collision step is called after
-  ** the propagate step and so values of interest
-  ** are in the scratch-space grid */
-  #pragma omp parallel for shared(w0,w1,w2,params,cells,tmp_cells,obstacles)
-    for (int ii = 0; ii < params.ny; ii++)
-    {
-      for (int jj = 0; jj < params.nx; jj++)
-      {
-        /* don't consider occupied cells */
-        if (!obstacles[ii * params.nx + jj])
-        {
-          int cellAccess = ii * params.nx + jj;
-          /* compute local density total */
-          float local_density = 0.0f;
-          for (int kk = 0; kk < NSPEEDS; kk++)
-          {
-            local_density += tmp_cells[cellAccess].speeds[kk];
-          }
-          /* compute x velocity component */
-          float u_x = (tmp_cells[cellAccess].speeds[1]
-                        + tmp_cells[cellAccess].speeds[5]
-                        + tmp_cells[cellAccess].speeds[8]
-                        - (tmp_cells[cellAccess].speeds[3]
-                           + tmp_cells[cellAccess].speeds[6]
-                           + tmp_cells[cellAccess].speeds[7]))
-                       / local_density;
-          /* compute y velocity component */
-          float u_y = (tmp_cells[cellAccess].speeds[2]
-                        + tmp_cells[cellAccess].speeds[5]
-                        + tmp_cells[cellAccess].speeds[6]
-                        - (tmp_cells[cellAccess].speeds[4]
-                           + tmp_cells[cellAccess].speeds[7]
-                           + tmp_cells[cellAccess].speeds[8]))
-                       / local_density;
-
-          /* velocity squared */
-          float u_sq = u_x * u_x + u_y * u_y;
-          /* equilibrium densities */
-          float d_equ[NSPEEDS];
-          /* zero velocity density: weight w0 */
-          d_equ[0] = w0 * local_density * (1.0f - 1.5f * u_sq);
-          /* axis speeds: weight w1 */
-          d_equ[1] = w1 * local_density * (1.0f + 3f * (u_x + u_x * u_x) - 1.5f * u_y * u_y);
-          d_equ[2] = w1 * local_density * (1.0f + 3f * (u_y + u_y * u_y) - 1.5f * u_x * u_x);
-          d_equ[3] = w1 * local_density * (1.0f + 3f * (-u_x + u_x * u_x) - 1.5f * u_y * u_y);
-          d_equ[4] = w1 * local_density * (1.0f + 3f * (-u_y + u_y * u_y) - 1.5f * u_x *u_x);
-          /* diagonal speeds: weight w2 */
-          d_equ[5] = w2 * local_density * (1.0f + 3f * (u_sq + u_x + u_y) + 9f * u_x * u_y);
-          d_equ[6] = w2 * local_density * (1.0f + 3f * (u_sq - u_x + u_y) - 9f * u_x * u_y);
-          d_equ[7] = w2 * local_density * (1.0f + 3f * (u_sq - u_x - u_y) + 9f * u_x * u_y);
-          d_equ[8] = w2 * local_density * (1.0f + 3f * (u_sq + u_x - u_y) - 9f * u_x * u_y);
-
-          /* relaxation step */
-
-          for (int kk = 0; kk < NSPEEDS; kk++)
-            {
-              cells[cellAccess].speeds[kk] = tmp_cells[cellAccess].speeds[kk]
-                                                      + params.omega
-                                                      * (d_equ[kk] - tmp_cells[cellAccess].speeds[kk]);
-            }
-        }
-      }
-    }
-
   return EXIT_SUCCESS;
 }
 
@@ -498,15 +429,15 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   if (retval != 1) die("could not read param file: reynolds_dim", __LINE__, __FILE__);
 
-  retval = fscanf(fp, "%lf\n", &(params->density));
+  retval = fscanf(fp, "%f\n", &(params->density));
 
   if (retval != 1) die("could not read param file: density", __LINE__, __FILE__);
 
-  retval = fscanf(fp, "%lf\n", &(params->accel));
+  retval = fscanf(fp, "%f\n", &(params->accel));
 
   if (retval != 1) die("could not read param file: accel", __LINE__, __FILE__);
 
-  retval = fscanf(fp, "%lf\n", &(params->omega));
+  retval = fscanf(fp, "%f\n", &(params->omega));
 
   if (retval != 1) die("could not read param file: omega", __LINE__, __FILE__);
 
