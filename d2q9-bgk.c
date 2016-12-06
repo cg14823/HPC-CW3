@@ -151,7 +151,6 @@ cl_device_id selectOpenCLDevice();
 */
 int main(int argc, char* argv[])
 {
-  printf("START\n");
   char*    paramfile = NULL;    /* name of the input parameter file */
   char*    obstaclefile = NULL; /* name of a the input obstacle file */
   t_param  params;              /* struct to hold parameter values */
@@ -177,10 +176,8 @@ int main(int argc, char* argv[])
     paramfile = argv[1];
     obstaclefile = argv[2];
   }
-  printf("Before in\n");
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl);
-  printf("after\n");
   /* iterate for maxIters timesteps */
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -240,17 +237,13 @@ int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obst
 
   accelerate_flow(params, cells, obstacles, ocl);
   propagate(params, cells, tmp_cells, ocl);
-  printf("here!1\n");
-
   rebound(params, cells, tmp_cells, obstacles, ocl);
-  printf("here!11\n");
 
   // Read tmp_cells from device
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.tmp_cells, CL_TRUE, 0,
     sizeof(t_speed) * params.nx * params.ny, tmp_cells, 0, NULL, NULL);
   checkError(err, "reading tmp_cells data", __LINE__);
-  printf("here!111\n");
 
   collision(params, cells, tmp_cells, obstacles, ocl);
   return EXIT_SUCCESS;
