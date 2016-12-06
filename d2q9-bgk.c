@@ -709,7 +709,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
   checkError(err, "creating accelerate_flow kernel", __LINE__);
   ocl->propagate = clCreateKernel(ocl->program, "propagate", &err);
   checkError(err, "creating propagate kernel", __LINE__);
-  ocl->propagate = clCreateKernel(ocl->program, "rebound", &err);
+  ocl->rebound = clCreateKernel(ocl->program, "rebound", &err);
   checkError(err, "creating rebound kernel", __LINE__);
 
   // Allocate OpenCL buffers
