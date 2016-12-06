@@ -146,5 +146,66 @@ kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, 
     cells[ii * nx + jj].speeds[8] = tmp_cells[ii * nx + jj].speeds[6];
   }
 
+}
 
+kernel void av_velocity(global t_speed* cells, global int* obstacles, int nx, int ny, local float* local_u,global float* workItemReduction)
+{
+    int    tot_cells = 0;  /* no. of cells used in calculation */
+    float tot_u;          /* accumulated magnitudes of velocity for each cell */
+
+    /* initialise */
+    tot_u = 0.0f;
+
+   int jj = get_global_id(0);
+   int ii = get_global_id(1);
+   int i_local = get_local_id(1);
+   int j_local = get_local_id(0);
+
+  /* ignore occupied cells */
+  if (!obstacles[ii * nx + jj])
+  {
+    /* local density total */
+    float local_density = 0.0f;
+
+    for (int kk = 0; kk < NSPEEDS; kk++)
+    {
+      local_density += cells[ii * nx + jj].speeds[kk];
+    }
+
+    /* x-component of velocity */
+    float u_x = (cells[ii * nx + jj].speeds[1]
+                  + cells[ii * nx + jj].speeds[5]
+                  + cells[ii * nx + jj].speeds[8]
+                  - (cells[ii * nx + jj].speeds[3]
+                     + cells[ii * nx + jj].speeds[6]
+                     + cells[ii * nx + jj].speeds[7]))
+                 / local_density;
+    /* compute y velocity component */
+    float u_y = (cells[ii * nx + jj].speeds[2]
+                  + cells[ii * nx + jj].speeds[5]
+                  + cells[ii * nx + jj].speeds[6]
+                  - (cells[ii * nx + jj].speeds[4]
+                     + cells[ii * nx + jj].speeds[7]
+                     + cells[ii * nx + jj].speeds[8]))
+                 / local_density;
+    /* accumulate the norm of x- and y- velocity components */
+    tot_u = sqrt((u_x * u_x) + (u_y * u_y));
+    /* increase counter of inspected cells */
+    tot_cells =1;
+  }
+  local_u[i_local*get_local_size(1)+j_local] = tot_u;
+
+  // local reduction rows first
+  for (int stride =1; stride < get_local_size(1); stride *=2){
+    barrier( CLK_LOCAL_MEM_FENCE );
+
+
+  }
+
+
+}
+
+kernel void reduce(glocbal float* av_vels,local float* localu, int nx,int ny){
+  int n = get_local_size(1);
+  int ii = get_local_id(ii);
 }
