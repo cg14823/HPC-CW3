@@ -204,8 +204,48 @@ kernel void av_velocity(global t_speed* cells, global int* obstacles, int nx, in
 
 
 }
+kernel void reduce(
+            global float* vels,
+            local float* local_sum,
+            global float* partial_results, int nx) {
 
-kernel void reduce(glocbal float* av_vels,local float* localu, int nx,int ny){
-  int n = get_local_size(1);
-  int ii = get_local_id(ii);
+  int global_jj = get_global_id(0);
+  int global_ii = get_global_id(1);
+
+  int local_size_x = get_local_size(0);
+  int local_size_y = get_local_size(1);
+
+  int local_jj = get_local_id(0);
+  int local_ii = get_local_id(1);
+
+  int local_index = local_ii*local_size+local_jj;
+  int global_index = global_ii*nx+global_jj;
+
+  local_sum[local_index] = vels[global_index]
+
+  barrier(CLK_LOCAL_MEM_FENCE);
+  // reduce rows localy
+  for(int offset =1; offset < local_size_x; offset *=2){
+    if( (offset + local_jj < local_size_x)&&( local_jj%(offset*2) == 0)) {
+      local_sum[local_index] += local_sum[local_index+offset]
+    }
+  }
+  barrier(CLK_LOCAL_MEM_FENCE);
+  // reduce cols localy
+  for(int offset =1; offset < local_size_y; offset *=2){
+    //reduce the goddam cols
+    if ((offset+local_ii < local_size_y)&&(local_ii%(offset*2) ==0)&&(local_jj == 0)){
+      local_sum[local_index] += local_sum[(local_ii+offset)*nx+local_jj];
+    }
+  }
+  barrier(CLK_LOCAL_MEM_FENCE);
+  //reduce local grids and add them to a global grid then reduce that
+  partial_results[get_group_id(0)] =local_sum[0];
 }
+
+kernel void reduce2(global float* partial_sums,global float* av_vels){
+
+}
+// reduce cols localy
+// reduce each local group
+//that should work??
