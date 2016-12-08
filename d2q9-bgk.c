@@ -356,10 +356,10 @@ int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl
   checkError(err, "setting av_velocity arg 3", __LINE__);
   err = clSetKernelArg(ocl.av_velocity, 3, sizeof(cl_int), &params.ny);
   checkError(err, "setting av_velocity arg 4", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 4, sizeof(cl_int), &ocl.global_u);
+  err = clSetKernelArg(ocl.av_velocity, 4, sizeof(cl_mem), &ocl.global_u);
   checkError(err, "setting av_velocity arg 4", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 5, sizeof(cl_int), &ocl.global_tot_cells);
-  checkError(err, "setting av_velocity arg 4", __LINE__);
+  err = clSetKernelArg(ocl.av_velocity, 5, sizeof(cl_mem), &ocl.global_tot_cells);
+  checkError(err, "setting av_velocity arg 5", __LINE__);
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
