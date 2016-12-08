@@ -387,7 +387,7 @@ int reduce (t_ocl ocl, const t_param params){
   checkError(err, "setting reduce arg 4", __LINE__);
   err = clSetKernelArg(ocl.reduce, 5, sizeof(cl_mem), &ocl.results_reduce_u);
   checkError(err, "setting reduce arg 0", __LINE__);
-  err = clSetKernelArg(ocl.reduce, 6, sizeof(cl_mem), &ocl.result_reduce_cells);
+  err = clSetKernelArg(ocl.reduce, 6, sizeof(cl_mem), &ocl.results_reduce_cells);
   checkError(err, "setting reduce arg 2", __LINE__);
 
 
@@ -412,7 +412,7 @@ int serial_reduce (t_ocl ocl, const t_param params){
   // Set kernel arguments
   err = clSetKernelArg(ocl.serial_reduce, 0, sizeof(cl_mem), &ocl.results_reduce_u);
   checkError(err, "setting reduce arg 0", __LINE__);
-  err = clSetKernelArg(ocl.serial_reduce, 1, sizeof(cl_mem), &ocl.result_reduce_cells);
+  err = clSetKernelArg(ocl.serial_reduce, 1, sizeof(cl_mem), &ocl.results_reduce_cells);
   checkError(err, "setting reduce arg 2", __LINE__);
   err = clSetKernelArg(ocl.serial_reduce, 2, sizeof(cl_int), &params.nx);
   checkError(err, "setting reduce arg 4", __LINE__);
