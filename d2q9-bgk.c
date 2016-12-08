@@ -392,8 +392,8 @@ int reduce (t_ocl ocl, const t_param params){
 
 
   // Enqueue kernel
-  size_t global = params.nx * params.ny;
-  size_t local_size = params.ny;
+  size_t global[1] = {params.nx * params.ny};
+  size_t local_size[1] = {params.ny};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.reduce,
                                1, NULL, global, local_size, 0, NULL, NULL);
   checkError(err, "enqueueing reduce kernel", __LINE__);
@@ -410,9 +410,9 @@ int reduce (t_ocl ocl, const t_param params){
 int serial_reduce (t_ocl ocl, const t_param params){
   cl_int err;
   // Set kernel arguments
-  err = clSetKernelArg(ocl.serial_reduce, 0, sizeof(cl_mem), &ocl.result_u);
+  err = clSetKernelArg(ocl.serial_reduce, 0, sizeof(cl_mem), &ocl.results_reduce_u);
   checkError(err, "setting reduce arg 0", __LINE__);
-  err = clSetKernelArg(ocl.serial_reduce, 1, sizeof(cl_mem), &ocl.result_cells);
+  err = clSetKernelArg(ocl.serial_reduce, 1, sizeof(cl_mem), &ocl.result_reduce_cells);
   checkError(err, "setting reduce arg 2", __LINE__);
   err = clSetKernelArg(ocl.serial_reduce, 2, sizeof(cl_int), &params.nx);
   checkError(err, "setting reduce arg 4", __LINE__);
@@ -423,8 +423,8 @@ int serial_reduce (t_ocl ocl, const t_param params){
 
 
   // Enqueue kernel
-  size_t global = params.nx * params.ny;
-  size_t local_size = params.ny;
+  size_t global[1] = {params.nx * params.ny};
+  size_t local_size[1] = {params.ny};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.serial_reduce,
                                1, NULL, global, local_size, 0, NULL, NULL);
   checkError(err, "enqueueing reduce kernel", __LINE__);
