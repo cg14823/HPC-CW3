@@ -323,6 +323,8 @@ int collision_rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, 
   checkError(err, "setting collision_rebound arg 3", __LINE__);
   err = clSetKernelArg(ocl.collision_rebound, 4, sizeof(cl_int), &params.ny);
   checkError(err, "setting collision_rebound arg 4", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound, 5, sizeof(cl_float), &params.omega);
+  checkError(err, "setting collision_rebound arg 4", __LINE__);
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
