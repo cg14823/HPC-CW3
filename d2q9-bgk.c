@@ -193,8 +193,7 @@ int main(int argc, char* argv[])
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl);
   /* iterate for maxIters timesteps */
-  gettimeofday(&timstr, NULL);
-  tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
+
 
   // Write cells to OpenCL buffer
   err = clEnqueueWriteBuffer(
@@ -208,6 +207,9 @@ int main(int argc, char* argv[])
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
 
+  gettimeofday(&timstr, NULL);
+  tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
+
   for (int tt = 0; tt < params.maxIters; tt++)
   {
     timestep(params, cells, tmp_cells, obstacles, ocl);
@@ -215,14 +217,6 @@ int main(int argc, char* argv[])
     reduce (ocl, params);
     serial_reduce (ocl,params);
   }
-  err = clEnqueueReadBuffer(
-    ocl.queue, ocl.av_vels, CL_TRUE, 0,
-    sizeof(float) * params.maxIters, av_vels, 0, NULL, NULL);
-  checkError(err, "reading av_vel from device data", __LINE__);
-  err = clEnqueueReadBuffer(
-    ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(t_speed) * params.nx*params.ny, cells, 0, NULL, NULL);
-  checkError(err, "reading av_vel from device data", __LINE__);
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -231,6 +225,15 @@ int main(int argc, char* argv[])
   usrtim = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
   timstr = ru.ru_stime;
   systim = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
+
+  err = clEnqueueReadBuffer(
+    ocl.queue, ocl.av_vels, CL_TRUE, 0,
+    sizeof(float) * params.maxIters, av_vels, 0, NULL, NULL);
+  checkError(err, "reading av_vel from device data", __LINE__);
+  err = clEnqueueReadBuffer(
+    ocl.queue, ocl.cells, CL_TRUE, 0,
+    sizeof(t_speed) * params.nx*params.ny, cells, 0, NULL, NULL);
+  checkError(err, "reading av_vel from device data", __LINE__);
 
   /* write final values and free memory */
   printf("==done==\n");
