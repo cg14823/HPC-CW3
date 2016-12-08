@@ -91,7 +91,7 @@ typedef struct
   cl_kernel  accelerate_flow;
   cl_kernel  propagate;
   cl_kernel  collision_rebound;
-  cl_kerel   av_velocity;
+  cl_kernel  av_velocity;
   cl_kernel  reduce;
   cl_kernel  serial_reduce;
 
@@ -242,11 +242,6 @@ int main(int argc, char* argv[])
 
 int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl)
 {
-  cl_int err;
-
-  // Write cells to device
-
-
   accelerate_flow(params, cells, obstacles, ocl);
   propagate(params, cells, tmp_cells, ocl);
   collision_rebound(params, cells, tmp_cells, obstacles, ocl);
@@ -709,6 +704,9 @@ int initialise(const char* paramfile, const char* obstaclefile,
   checkError(err, "creating av_velocity kernel", __LINE__);
   ocl->reduce = clCreateKernel(ocl->program, "amd_reduce", &err);
   checkError(err, "creating amd_reduce kernel", __LINE__);
+  ocl->serial_reduce = clCreateKernel(ocl->program, "serial_reduce", &err);
+  checkError(err, "creating amd_reduce kernel", __LINE__);
+
 
   // Allocate OpenCL buffers
   ocl->cells = clCreateBuffer(

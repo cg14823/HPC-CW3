@@ -256,7 +256,7 @@ kernel void serial_reduce(global float* local_speeds,
   if (get_global_id(0) == 0){
     float sumu =0.0f;
     int sumc =0;
-    for(int i =0; i, length;i++){
+    for(int i =0; i < length;i++){
       sumu += local_speeds[i];
       sumc += local_cells[i];
     }
