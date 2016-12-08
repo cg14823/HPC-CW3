@@ -219,6 +219,10 @@ int main(int argc, char* argv[])
     ocl.queue, ocl.av_vels, CL_TRUE, 0,
     sizeof(float) * params.maxIters, av_vels, 0, NULL, NULL);
   checkError(err, "reading av_vel from device data", __LINE__);
+  err = clEnqueueReadBuffer(
+    ocl.queue, ocl.cells, CL_TRUE, 0,
+    sizeof(t_speed) * params.nx*params.ny, cells, 0, NULL, NULL);
+  checkError(err, "reading av_vel from device data", __LINE__);
 
   gettimeofday(&timstr, NULL);
   toc = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
