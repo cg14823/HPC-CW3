@@ -148,7 +148,11 @@ kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, 
 
 }
 
-kernel void av_velocity(global t_speed* cells, global int* obstacles, int nx, int ny, local float* local_u,global float* workItemReduction)
+kernel void av_velocity(global t_speed* cells,
+                        global int* obstacles,
+                        int nx, int ny,
+                        global float* single_u
+                        global int* single_cells)
 {
     int    tot_cells = 0;  /* no. of cells used in calculation */
     float tot_u;          /* accumulated magnitudes of velocity for each cell */
@@ -158,8 +162,6 @@ kernel void av_velocity(global t_speed* cells, global int* obstacles, int nx, in
 
    int jj = get_global_id(0);
    int ii = get_global_id(1);
-   int i_local = get_local_id(1);
-   int j_local = get_local_id(0);
 
   /* ignore occupied cells */
   if (!obstacles[ii * nx + jj])
@@ -193,59 +195,72 @@ kernel void av_velocity(global t_speed* cells, global int* obstacles, int nx, in
     /* increase counter of inspected cells */
     tot_cells =1;
   }
-  local_u[i_local*get_local_size(1)+j_local] = tot_u;
-
-  // local reduction rows first
-  for (int stride =1; stride < get_local_size(1); stride *=2){
-    barrier( CLK_LOCAL_MEM_FENCE );
-
-
-  }
-
+  single_u[ii*nx+jj] = tot_u;
+  single_cells[ii*nx+jj] = tot_cells;
 
 }
-kernel void reduce(
-            global float* vels,
-            local float* local_sum,
-            global float* partial_results, int nx) {
 
-  int global_jj = get_global_id(0);
-  int global_ii = get_global_id(1);
-
-  int local_size_x = get_local_size(0);
-  int local_size_y = get_local_size(1);
-
-  int local_jj = get_local_id(0);
-  int local_ii = get_local_id(1);
-
-  int local_index = local_ii*local_size+local_jj;
-  int global_index = global_ii*nx+global_jj;
-
-  local_sum[local_index] = vels[global_index]
-
-  barrier(CLK_LOCAL_MEM_FENCE);
-  // reduce rows localy
-  for(int offset =1; offset < local_size_x; offset *=2){
-    if( (offset + local_jj < local_size_x)&&( local_jj%(offset*2) == 0)) {
-      local_sum[local_index] += local_sum[local_index+offset]
-    }
-  }
-  barrier(CLK_LOCAL_MEM_FENCE);
-  // reduce cols localy
-  for(int offset =1; offset < local_size_y; offset *=2){
-    //reduce the goddam cols
-    if ((offset+local_ii < local_size_y)&&(local_ii%(offset*2) ==0)&&(local_jj == 0)){
-      local_sum[local_index] += local_sum[(local_ii+offset)*nx+local_jj];
-    }
-  }
-  barrier(CLK_LOCAL_MEM_FENCE);
-  //reduce local grids and add them to a global grid then reduce that
-  partial_results[get_group_id(0)] =local_sum[0];
-}
-
-kernel void reduce2(global float* partial_sums,global float* av_vels){
-
-}
+// ** Do the reduction insted of powers of two by offset size so no modulus needed
 // reduce cols localy
 // reduce each local group
 //that should work??
+
+
+kernel
+void amd_reduce(
+            global float* global_u,
+            global int* global_tot_cells,
+            local float* local_sum_u,
+            local int* local_sum_cells,
+            const int length,
+            global float* result_u,
+            global int* result_cells) {
+
+  int global_index = get_global_id(0);
+  int local_index = get_local_id(0);
+  // Load data into local memory
+
+  if (global_index < length) {
+    local_sum_u[local_index] = global_u[global_index];
+    local_sum_cells[local_index] = global_tot_cells[global_index];
+  } else {
+    // Infinity is the identity element for the min operation
+    local_sum_u[local_index] = INFINITY;
+    local_sum_cells[local_index] = INFINITY;
+  }
+
+  barrier(CLK_LOCAL_MEM_FENCE);
+
+  for(int offset = get_local_size(0) / 2;
+        offset > 0;
+        offset >>= 1) {
+      if (local_index < offset) {
+        local_sum_u[local_index] += local_sum_u[local_index + offset];
+        local_sum_cells[local_index] += local_sum_cells[local_index + offset];
+      }
+      barrier(CLK_LOCAL_MEM_FENCE);
+    }
+
+  if (local_index == 0) {
+    result_u[get_group_id(0)] = local_sum_u[0];
+    result_cells[get_group_id(0)] = local_sum_cells[0];
+  }
+}
+
+kernel void serial_reduce(global float* local_speeds,
+                          global int* local_cells,
+                          int length,
+                          global float* av_vels,
+                          int tt){
+
+  if (get_global_id(0) == 0){
+    float sumu =0.0f;
+    int sumc =0;
+    for(int i =0; i, length;i++){
+      sumu += local_speeds[i];
+      sumc += local_cells[i];
+    }
+    av_vels[tt] =sumu/(float)sumc;
+  }
+
+}
