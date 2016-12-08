@@ -354,9 +354,9 @@ int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl
   checkError(err, "setting av_velocity arg 3", __LINE__);
   err = clSetKernelArg(ocl.av_velocity, 3, sizeof(cl_int), &params.ny);
   checkError(err, "setting av_velocity arg 4", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 4, sizeof(cl_int), &ocl.local_u);
+  err = clSetKernelArg(ocl.av_velocity, 4, sizeof(cl_int), &ocl.global_u);
   checkError(err, "setting av_velocity arg 4", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 5, sizeof(cl_int), &ocl.local_tot);
+  err = clSetKernelArg(ocl.av_velocity, 5, sizeof(cl_int), &ocl.global_tot_cells);
   checkError(err, "setting av_velocity arg 4", __LINE__);
 
   // Enqueue kernel
@@ -385,9 +385,9 @@ int reduce (t_ocl ocl, const t_param params){
   checkError(err, "setting reduce arg 3", __LINE__);
   err = clSetKernelArg(ocl.reduce, 4, sizeof(cl_int), &size);
   checkError(err, "setting reduce arg 4", __LINE__);
-  err = clSetKernelArg(ocl.reduce, 5, sizeof(cl_mem), &ocl.result_u);
+  err = clSetKernelArg(ocl.reduce, 5, sizeof(cl_mem), &ocl.results_reduce_u);
   checkError(err, "setting reduce arg 0", __LINE__);
-  err = clSetKernelArg(ocl.reduce, 6, sizeof(cl_mem), &ocl.result_cells);
+  err = clSetKernelArg(ocl.reduce, 6, sizeof(cl_mem), &ocl.result_reduce_cells);
   checkError(err, "setting reduce arg 2", __LINE__);
 
 
