@@ -409,7 +409,7 @@ int reduce (t_ocl ocl, const t_param params){
 
   // Wait for kernel to finish
   err = clFinish(ocl.queue);
-  checkError(err, "waiting for collision_rebound kernel", __LINE__);
+  checkError(err, "waiting for reduce kernel", __LINE__);
 
   return EXIT_SUCCESS;
 
