@@ -260,7 +260,7 @@ kernel void serial_reduce(global float* local_speeds,
       sumu += local_speeds[i];
       sumc += local_cells[i];
     }
-    float result =sumu/(float)sumc
+    float result =sumu/(float)sumc;
     av_vels[tt] =sumu/(float)sumc;
     pritnf("it %d\n",tt);
     printf("%f\n", result);
