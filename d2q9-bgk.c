@@ -354,9 +354,9 @@ int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl
   checkError(err, "setting av_velocity arg 2", __LINE__);
   err = clSetKernelArg(ocl.av_velocity, 3, sizeof(cl_int)*params.nx, NULL);
   checkError(err, "setting av_velocity arg 3", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 4, sizeof(cl_mem), &ocl.results_reduce_u);
+  err = clSetKernelArg(ocl.av_velocity, 4, sizeof(cl_mem),&ocl.results_reduce_u);
   checkError(err, "setting av_velocity arg 4", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 5, sizeof(cl_mem), &ocl.results_reduce_cells);
+  err = clSetKernelArg(ocl.av_velocity, 5, sizeof(cl_mem),&ocl.results_reduce_cells);
   checkError(err, "setting av_velocity arg 5", __LINE__);
   err = clSetKernelArg(ocl.av_velocity, 6, sizeof(cl_mem),&ocl.av_vels);
   checkError(err, "setting av_velocity arg 6", __LINE__);

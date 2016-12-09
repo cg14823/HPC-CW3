@@ -219,6 +219,7 @@ kernel void av_velocity(global t_speed* cells,
   }
 
   barrier(CLK_GLOBAL_MEM_FENCE);
+  barrier(CLK_LOCAL_MEM_FENCE);
   // reduce remaining speeds serialy for now
   if (gii == 0){
     float sumu =0.0f;
@@ -229,6 +230,8 @@ kernel void av_velocity(global t_speed* cells,
     }
     av_vels[tt] =sumu/(float)sumc;
   }
+  barrier(CLK_GLOBAL_MEM_FENCE);
+  barrier(CLK_LOCAL_MEM_FENCE);
 }
 
 // ** Do the reduction insted of powers of two by offset size so no modulus needed
