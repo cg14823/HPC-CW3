@@ -220,9 +220,9 @@ int main(int argc, char* argv[])
     checkError(err, "setting reduce arg 2", __LINE__);
     err = clSetKernelArg(ocl.reduce, 3, sizeof(cl_int)*params.ny, NULL);
     checkError(err, "setting reduce arg 3", __LINE__);
-    err = clSetKernelArg(ocl.reduce, 4, sizeof(cl_mem), &ocl.result_u);
+    err = clSetKernelArg(ocl.reduce, 4, sizeof(cl_mem), &ocl.results_reduce_u);
     checkError(err, "setting reduce arg 4", __LINE__);
-    err = clSetKernelArg(ocl.reduce, 5, sizeof(cl_mem), &ocl.result_cells);
+    err = clSetKernelArg(ocl.reduce, 5, sizeof(cl_mem), &ocl.result_reduce_cells);
     checkError(err, "setting reduce arg 4", __LINE__);
     err = clSetKernelArg(ocl.reduce, 5, sizeof(cl_mem), &ocl.av_vels);
     checkError(err, "setting reduce arg 4", __LINE__);
