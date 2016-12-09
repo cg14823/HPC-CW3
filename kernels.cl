@@ -151,8 +151,12 @@ kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, 
 kernel void av_velocity(global t_speed* cells,
                         global int* obstacles,
                         int nx, int ny,
-                        global float* single_u,
-                        global int* single_cells)
+                        local float* local_us,
+                        local int* local_cells,
+                        global float* result_u,
+                        global int* result_cells
+                        global float* av_vels
+                        int length)
 {
     int    tot_cells = 0;  /* no. of cells used in calculation */
     float tot_u;          /* accumulated magnitudes of velocity for each cell */
@@ -160,44 +164,71 @@ kernel void av_velocity(global t_speed* cells,
     /* initialise */
     tot_u = 0.0f;
 
-   int jj = get_global_id(0);
-   int ii = get_global_id(1);
+   int gii = get_global_id(0);
+   int lii= get_local_id(0);
 
   /* ignore occupied cells */
-  if (!obstacles[ii * nx + jj])
+  if (!obstacles[gii])
   {
     /* local density total */
     float local_density = 0.0f;
 
     for (int kk = 0; kk < NSPEEDS; kk++)
     {
-      local_density += cells[ii * nx + jj].speeds[kk];
+      local_density += cells[gii].speeds[kk];
     }
 
     /* x-component of velocity */
-    float u_x = (cells[ii * nx + jj].speeds[1]
-                  + cells[ii * nx + jj].speeds[5]
-                  + cells[ii * nx + jj].speeds[8]
-                  - (cells[ii * nx + jj].speeds[3]
-                     + cells[ii * nx + jj].speeds[6]
-                     + cells[ii * nx + jj].speeds[7]))
-                 / local_density;
+    float u_x = (cells[gii].speeds[1]
+                  + cells[gii].speeds[5]
+                  + cells[gii].speeds[8]
+                  - (cells[gii].speeds[3]
+                     + cells[gii].speeds[6]
+                     + cells[gii].speeds[7]))
     /* compute y velocity component */
-    float u_y = (cells[ii * nx + jj].speeds[2]
-                  + cells[ii * nx + jj].speeds[5]
-                  + cells[ii * nx + jj].speeds[6]
-                  - (cells[ii * nx + jj].speeds[4]
-                     + cells[ii * nx + jj].speeds[7]
-                     + cells[ii * nx + jj].speeds[8]))
-                 / local_density;
+    float u_y = (cells[gii].speeds[2]
+                  + cells[gii].speeds[5]
+                  + cells[gii].speeds[6]
+                  - (cells[gii].speeds[4]
+                     + cells[gii].speeds[7]
+                     + cells[gii].speeds[8]))
+
     /* accumulate the norm of x- and y- velocity components */
-    tot_u = sqrt((u_x * u_x) + (u_y * u_y));
+    tot_u = sqrt((u_x * u_x) + (u_y * u_y))/local_density;
     /* increase counter of inspected cells */
     tot_cells =1;
   }
-  single_u[ii*nx+jj] = tot_u;
-  single_cells[ii*nx+jj] = tot_cells;
 
+  local_us[lii] = tot_u;
+  local_cells[lii] = tot_cells;
+  barrier(CLK_LOCAL_MEM_FENCE);
+
+  //reduce
+  for(int offset = get_local_size(0) / 2;
+        offset > 0;
+        offset >>= 1) {
+      if (lii < offset) {
+        local_sum_u[lii] += local_sum_u[lii + offset];
+        local_sum_cells[lii] += local_sum_cells[lii + offset];
+      }
+      barrier(CLK_LOCAL_MEM_FENCE);
+    }
+
+  if (lii == 0) {
+    result_u[get_group_id(0)] = local_sum_u[0];
+    result_cells[get_group_id(0)] = local_sum_cells[0];
+  }
+
+  barrier(CLK_GLOBAL_MEM_FENCE);
+  if (gii == 0){
+    float sumu =0.0f;
+    int sumc =0;
+    for(int i =0; i < length;i++){
+      sumu += result_u[i];
+      sumc += result_cells[i];
+    }
+    av_vels[tt] =sumu/(float)sumc;
+  }
 }
 
 // ** Do the reduction insted of powers of two by offset size so no modulus needed
@@ -205,7 +236,7 @@ kernel void av_velocity(global t_speed* cells,
 // reduce each local group
 //that should work??
 
-
+/*
 kernel
 void amd_reduce(
             global float* global_u,
@@ -253,7 +284,7 @@ kernel void serial_reduce(global float* local_speeds,
                           global float* av_vels,
                           int tt){
 
-  if (get_global_id(0) == 0){
+  if (get_global_id(0) == 0){.
     float sumu =0.0f;
     int sumc =0;
     for(int i =0; i < length;i++){
@@ -264,3 +295,4 @@ kernel void serial_reduce(global float* local_speeds,
   }
 
 }
+*/
