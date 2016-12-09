@@ -165,6 +165,7 @@ kernel void av_velocity(global t_speed* cells,
 
    int gii = get_global_id(0);
    int lii= get_local_id(0);
+   int group_id = get_group_id(0);
 
   /* ignore occupied cells */
   if (!obstacles[gii])
@@ -214,8 +215,9 @@ kernel void av_velocity(global t_speed* cells,
     }
 
   if (lii == 0) {
-    result_u[get_group_id(0)] = local_us[0];
-    result_cells[get_group_id(0)] = local_cells[0];
+    result_u[group_id] = local_us[0];
+    result_cells[group_id] = local_cells[0];
+    printf("tt: %d g_id: %d\n",tt,group_id);
   }
 
   barrier(CLK_GLOBAL_MEM_FENCE);
@@ -229,6 +231,8 @@ kernel void av_velocity(global t_speed* cells,
       sumc += result_cells[i];
     }
     av_vels[tt] =sumu/(float)sumc;
+    printf("it: %d vel: %f\n",tt,sumu/(float)sumc);
+    printf("lii: %d gii: %d\n",lii,gii);
   }
   barrier(CLK_GLOBAL_MEM_FENCE);
   barrier(CLK_LOCAL_MEM_FENCE);
