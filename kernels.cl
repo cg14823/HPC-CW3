@@ -150,13 +150,12 @@ kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, 
 
 kernel void av_velocity(global t_speed* cells,
                         global int* obstacles,
-                        int nx, int ny,
                         local float* local_us,
                         local int* local_cells,
                         global float* result_u,
-                        global int* result_cells
-                        global float* av_vels
-                        int length)
+                        global int* result_cells,
+                        global float* av_vels,
+                        int nofGroups)
 {
     int    tot_cells = 0;  /* no. of cells used in calculation */
     float tot_u;          /* accumulated magnitudes of velocity for each cell */
@@ -184,14 +183,14 @@ kernel void av_velocity(global t_speed* cells,
                   + cells[gii].speeds[8]
                   - (cells[gii].speeds[3]
                      + cells[gii].speeds[6]
-                     + cells[gii].speeds[7]))
+                     + cells[gii].speeds[7]));
     /* compute y velocity component */
     float u_y = (cells[gii].speeds[2]
                   + cells[gii].speeds[5]
                   + cells[gii].speeds[6]
                   - (cells[gii].speeds[4]
                      + cells[gii].speeds[7]
-                     + cells[gii].speeds[8]))
+                     + cells[gii].speeds[8]));
 
     /* accumulate the norm of x- and y- velocity components */
     tot_u = sqrt((u_x * u_x) + (u_y * u_y))/local_density;
@@ -203,27 +202,28 @@ kernel void av_velocity(global t_speed* cells,
   local_cells[lii] = tot_cells;
   barrier(CLK_LOCAL_MEM_FENCE);
 
-  //reduce
+  //reduce cells into local group us
   for(int offset = get_local_size(0) / 2;
         offset > 0;
         offset >>= 1) {
       if (lii < offset) {
-        local_sum_u[lii] += local_sum_u[lii + offset];
-        local_sum_cells[lii] += local_sum_cells[lii + offset];
+        local_us[lii] += local_us[lii + offset];
+        local_cells[lii] += local_cells[lii + offset];
       }
       barrier(CLK_LOCAL_MEM_FENCE);
     }
 
   if (lii == 0) {
-    result_u[get_group_id(0)] = local_sum_u[0];
-    result_cells[get_group_id(0)] = local_sum_cells[0];
+    result_u[get_group_id(0)] = local_us[0];
+    result_cells[get_group_id(0)] = local_cells[0];
   }
 
   barrier(CLK_GLOBAL_MEM_FENCE);
+  // reduce remaining speeds serialy for now
   if (gii == 0){
     float sumu =0.0f;
     int sumc =0;
-    for(int i =0; i < length;i++){
+    for(int i =0; i < nofGroups;i++){
       sumu += result_u[i];
       sumc += result_cells[i];
     }
