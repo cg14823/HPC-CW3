@@ -214,7 +214,7 @@ int main(int argc, char* argv[])
     // Set kernel arguments
     err = clSetKernelArg(ocl.reduce, 0, sizeof(cl_mem), &ocl.global_u);
     checkError(err, "setting reduce arg 0", __LINE__);
-    err = clSetKernelArg(ocl.reduce, 1, sizeof(cl_mem), &ocl.global_tot_cells);
+    err = clSetKernelArg(ocl.reduce, 1, sizeof(cl_mem), &ocl.global_cells);
     checkError(err, "setting reduce arg 1", __LINE__);
     err = clSetKernelArg(ocl.reduce, 2, sizeof(cl_float)*params.ny,NULL);
     checkError(err, "setting reduce arg 2", __LINE__);
@@ -741,7 +741,7 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
   clReleaseMemObject(ocl.results_reduce_u);
   clReleaseMemObject(ocl.results_reduce_cells);
   clReleaseMemObject(ocl.global_u);
-  clReleaseMemObject(ocl.global_cells)
+  clReleaseMemObject(ocl.global_cells);
   clReleaseKernel(ocl.reduce);
   clReleaseKernel(ocl.av_velocity);
   clReleaseKernel(ocl.accelerate_flow);
