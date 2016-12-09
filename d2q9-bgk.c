@@ -148,7 +148,7 @@ float total_density(const t_param params, t_speed* cells);
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 int reduce (t_ocl ocl, const t_param params);
-int serial_reduce (t_ocl ocl, int tt);
+int serial_reduce (t_ocl ocl,const t_param params, int tt);
 /* calculate Reynolds number */
 float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 
@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
     timestep(params, cells, tmp_cells, obstacles, ocl);
     av_velocityK(params, cells, obstacles, ocl);
     reduce (ocl, params);
-    serial_reduce (ocl,tt);
+    serial_reduce (ocl,params,tt);
   }
 
   gettimeofday(&timstr, NULL);
@@ -417,7 +417,7 @@ int reduce (t_ocl ocl, const t_param params){
 }
 
 
-int serial_reduce (t_ocl ocl,int tt){
+int serial_reduce (t_ocl ocl,const t_param params, int tt){
   cl_int err;
   // Set kernel arguments
   err = clSetKernelArg(ocl.serial_reduce, 0, sizeof(cl_mem), &ocl.results_reduce_u);
