@@ -247,6 +247,6 @@ void amd_reduce(
       sumc += result_cells[i];
     }
     av_vels[tt] =sumu/(float)sumc;
-    printf("it %d, av_vel: %f", tt,sumu/(float)sumc;);
+    printf("it %d, av_vel: %f", tt,sumu/(float)sumc);
   }
 }
