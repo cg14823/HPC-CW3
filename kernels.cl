@@ -211,7 +211,7 @@ void amd_reduce(
             global float* result_u,
             global int* result_cells,
             global float* av_vels,
-            int length) {
+            int length, int tt) {
 
   int global_index = get_global_id(0);
   int local_index = get_local_id(0);
