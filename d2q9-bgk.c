@@ -389,9 +389,9 @@ int reduce (t_ocl ocl, const t_param params){
   checkError(err, "setting reduce arg 0", __LINE__);
   err = clSetKernelArg(ocl.reduce, 1, sizeof(cl_mem), &ocl.global_tot_cells);
   checkError(err, "setting reduce arg 2", __LINE__);
-  err = clSetKernelArg(ocl.reduce, 2, params.nx* sizeof(cl_float), NULL);
+  err = clSetKernelArg(ocl.reduce, 2, params.ny* sizeof(cl_float), NULL);
   checkError(err, "setting reduce arg 3", __LINE__);
-  err = clSetKernelArg(ocl.reduce, 3, params.nx* sizeof(cl_int), NULL);
+  err = clSetKernelArg(ocl.reduce, 3, params.ny* sizeof(cl_int), NULL);
   checkError(err, "setting reduce arg 3", __LINE__);
   err = clSetKernelArg(ocl.reduce, 4, sizeof(cl_int), &size);
   checkError(err, "setting reduce arg 4", __LINE__);
@@ -424,7 +424,7 @@ int serial_reduce (t_ocl ocl,const t_param params, int tt){
   checkError(err, "setting reduce arg 0", __LINE__);
   err = clSetKernelArg(ocl.serial_reduce, 1, sizeof(cl_mem), &ocl.results_reduce_cells);
   checkError(err, "setting reduce arg 2", __LINE__);
-  err = clSetKernelArg(ocl.serial_reduce, 2, sizeof(cl_int), &params.nx);
+  err = clSetKernelArg(ocl.serial_reduce, 2, sizeof(cl_int), &params.ny);
   checkError(err, "setting reduce arg 4", __LINE__);
   err = clSetKernelArg(ocl.serial_reduce, 3, sizeof(cl_mem), &ocl.av_vels);
   checkError(err, "setting reduce arg 4", __LINE__);
