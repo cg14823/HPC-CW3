@@ -150,12 +150,8 @@ kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, 
 
 kernel void av_velocity(global t_speed* cells,
                         global int* obstacles,
-                        local float* local_us,
-                        local int* local_cells,
-                        global float* result_u,
-                        global int* result_cells,
-                        global float* av_vels,
-                        int nofGroups, int tt)
+                        global float* global_u,
+                        global int* global_cells)
 {
     int    tot_cells = 0;  /* no. of cells used in calculation */
     float tot_u;          /* accumulated magnitudes of velocity for each cell */
@@ -164,8 +160,6 @@ kernel void av_velocity(global t_speed* cells,
     tot_u = 0.0f;
 
    int gii = get_global_id(0);
-   int lii= get_local_id(0);
-   int group_id = get_group_id(0);
 
   /* ignore occupied cells */
   if (!obstacles[gii])
@@ -198,44 +192,8 @@ kernel void av_velocity(global t_speed* cells,
     /* increase counter of inspected cells */
     tot_cells =1;
   }
-
-  local_us[lii] = tot_u;
-  local_cells[lii] = tot_cells;
-  barrier(CLK_LOCAL_MEM_FENCE);
-
-  //reduce cells into local group us
-  for(int offset = get_local_size(0) / 2;
-        offset > 0;
-        offset >>= 1) {
-      if (lii < offset) {
-        local_us[lii] += local_us[lii + offset];
-        local_cells[lii] += local_cells[lii + offset];
-      }
-      barrier(CLK_LOCAL_MEM_FENCE);
-    }
-
-  if (lii == 0) {
-    result_u[group_id] = local_us[0];
-    result_cells[group_id] = local_cells[0];
-    printf("tt: %d g_id: %d\n",tt,group_id);
-  }
-
-  barrier(CLK_GLOBAL_MEM_FENCE);
-  barrier(CLK_LOCAL_MEM_FENCE);
-  // reduce remaining speeds serialy for now
-  if (gii == 0){
-    float sumu =0.0f;
-    int sumc =0;
-    for(int i =0; i < nofGroups;i++){
-      sumu += result_u[i];
-      sumc += result_cells[i];
-    }
-    av_vels[tt] =sumu/(float)sumc;
-    printf("it: %d vel: %f\n",tt,sumu/(float)sumc);
-    printf("lii: %d gii: %d\n",lii,gii);
-  }
-  barrier(CLK_GLOBAL_MEM_FENCE);
-  barrier(CLK_LOCAL_MEM_FENCE);
+  global_u[gii] = tot_u;
+  global_cells[gii] = tot_cells;
 }
 
 // ** Do the reduction insted of powers of two by offset size so no modulus needed
@@ -243,29 +201,25 @@ kernel void av_velocity(global t_speed* cells,
 // reduce each local group
 //that should work??
 
-/*
+
 kernel
 void amd_reduce(
             global float* global_u,
             global int* global_tot_cells,
             local float* local_sum_u,
             local int* local_sum_cells,
-            const int length,
             global float* result_u,
-            global int* result_cells) {
+            global int* result_cells,
+            global float* av_vels,
+            int length) {
 
   int global_index = get_global_id(0);
   int local_index = get_local_id(0);
   // Load data into local memory
 
-  if (global_index < length) {
-    local_sum_u[local_index] = global_u[global_index];
-    local_sum_cells[local_index] = global_tot_cells[global_index];
-  } else {
-    // Infinity is the identity element for the min operation
-    local_sum_u[local_index] = INFINITY;
-    local_sum_cells[local_index] = INFINITY;
-  }
+
+  local_sum_u[local_index] = global_u[global_index];
+  local_sum_cells[local_index] = global_tot_cells[global_index];
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -283,23 +237,15 @@ void amd_reduce(
     result_u[get_group_id(0)] = local_sum_u[0];
     result_cells[get_group_id(0)] = local_sum_cells[0];
   }
-}
+  barrier(CLK_GLOBAL_MEM_FENCE);
 
-kernel void serial_reduce(global float* local_speeds,
-                          global int* local_cells,
-                          int length,
-                          global float* av_vels,
-                          int tt){
-
-  if (get_global_id(0) == 0){.
+  if (global_index == 0){.
     float sumu =0.0f;
     int sumc =0;
     for(int i =0; i < length;i++){
-      sumu += local_speeds[i];
-      sumc += local_cells[i];
+      sumu += result_u[i];
+      sumc += result_cells[i];
     }
     av_vels[tt] =sumu/(float)sumc;
   }
-
 }
-*/
