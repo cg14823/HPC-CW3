@@ -155,7 +155,7 @@ kernel void av_velocity(global t_speed* cells,
                         global float* result_u,
                         global int* result_cells,
                         global float* av_vels,
-                        int nofGroups)
+                        int nofGroups, int tt)
 {
     int    tot_cells = 0;  /* no. of cells used in calculation */
     float tot_u;          /* accumulated magnitudes of velocity for each cell */
