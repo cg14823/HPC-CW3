@@ -223,11 +223,13 @@ int main(int argc, char* argv[])
     err = clSetKernelArg(ocl.reduce, 4, sizeof(cl_mem), &ocl.results_reduce_u);
     checkError(err, "setting reduce arg 4", __LINE__);
     err = clSetKernelArg(ocl.reduce, 5, sizeof(cl_mem), &ocl.results_reduce_cells);
-    checkError(err, "setting reduce arg 4", __LINE__);
-    err = clSetKernelArg(ocl.reduce, 5, sizeof(cl_mem), &ocl.av_vels);
-    checkError(err, "setting reduce arg 4", __LINE__);
-    err = clSetKernelArg(ocl.reduce, 5, sizeof(cl_int), &params.nx);
-    checkError(err, "setting reduce arg 4", __LINE__);
+    checkError(err, "setting reduce arg 5", __LINE__);
+    err = clSetKernelArg(ocl.reduce, 6, sizeof(cl_mem), &ocl.av_vels);
+    checkError(err, "setting reduce arg 6", __LINE__);
+    err = clSetKernelArg(ocl.reduce, 7, sizeof(cl_int), &params.nx);
+    checkError(err, "setting reduce arg 7", __LINE__);
+    err = clSetKernelArg(ocl.reduce, 8, sizeof(cl_int), &tt);
+    checkError(err, "setting reduce arg 8", __LINE__);
 
     // Enqueue kernel
     size_t global[1] = {params.nx* params.ny};
