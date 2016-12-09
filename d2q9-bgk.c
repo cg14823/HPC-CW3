@@ -230,6 +230,7 @@ int main(int argc, char* argv[])
     ocl.queue, ocl.av_vels, CL_TRUE, 0,
     sizeof(float) * params.maxIters, av_vels, 0, NULL, NULL);
   checkError(err, "reading av_vel from device data", __LINE__);
+
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
     sizeof(t_speed) * params.nx*params.ny, cells, 0, NULL, NULL);
@@ -376,7 +377,7 @@ int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl
 
   // Wait for kernel to finish
   err = clFinish(ocl.queue);
-  checkError(err, "waiting for collision_rebound kernel", __LINE__);
+  checkError(err, "waiting for av_velocity kernel", __LINE__);
 
   return EXIT_SUCCESS;
 }
