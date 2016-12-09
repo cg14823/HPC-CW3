@@ -228,7 +228,6 @@ kernel void av_velocity(global t_speed* cells,
       sumc += result_cells[i];
     }
     av_vels[tt] =sumu/(float)sumc;
-    printf("it %d vel %f\n",tt,sumu/(float)sumc );
   }
 }
 
