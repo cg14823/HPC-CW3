@@ -140,7 +140,7 @@ float total_density(const t_param params, t_speed* cells);
 
 /* compute average velocity */
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
-int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
+int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl, int tt);
 /* calculate Reynolds number */
 float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
   for (int tt = 0; tt < params.maxIters; tt++)
   {
     timestep(params, cells, tmp_cells, obstacles, ocl);
-    av_velocityK(params, cells, obstacles, ocl);
+    av_velocityK(params, cells, obstacles, ocl,tt);
   }
 
   gettimeofday(&timstr, NULL);
@@ -342,7 +342,7 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
   return EXIT_SUCCESS;
 }
 
-int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl)
+int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl,int tt)
 {
   cl_int err;
   // Set kernel arguments
@@ -362,6 +362,8 @@ int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl
   checkError(err, "setting av_velocity arg 6", __LINE__);
   err = clSetKernelArg(ocl.av_velocity, 7, sizeof(cl_int),&params.ny);
   checkError(err, "setting av_velocity arg 7", __LINE__);
+  err = clSetKernelArg(ocl.av_velocity, 8, sizeof(cl_int),&tt);
+  checkError(err, "setting av_velocity arg 8", __LINE__);
 
   // Enqueue kernel
   size_t global[1] = {params.nx* params.ny};
