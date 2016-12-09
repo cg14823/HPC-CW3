@@ -239,7 +239,7 @@ void amd_reduce(
   }
   barrier(CLK_GLOBAL_MEM_FENCE);
 
-  if (global_index == 0){.
+  if (global_index == 0){
     float sumu =0.0f;
     int sumc =0;
     for(int i =0; i < length;i++){
