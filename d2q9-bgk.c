@@ -664,19 +664,20 @@ int initialise(const char* paramfile, const char* obstaclefile,
   // Allocate openCl buffer for reductions and av_vels_ptr
   ocl->av_vels = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(float) * params->maxIters, NULL, &err);
+    sizeof(cl_float) * params->maxIters, NULL, &err);
   checkError(err, "av_velss buffer", __LINE__);
 
 
   ocl->results_reduce_u = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(float) * params->ny, NULL, &err);
+    sizeof(cl_float) * params->ny, NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
   ocl->results_reduce_cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(int) * params->ny, NULL, &err);
+    sizeof(cl_int) * params->ny, NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
+
 
   return EXIT_SUCCESS;
 }
