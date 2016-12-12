@@ -67,6 +67,7 @@
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define OCLFILE         "kernels.cl"
+#define LOCALSIZE       64
 
 /* struct to hold the parameter values */
 typedef struct
@@ -202,12 +203,14 @@ int main(int argc, char* argv[])
     ocl.queue, ocl.obstacles, CL_TRUE, 0,
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
-
+  int length = params.nx* params.ny /LOCALSIZE;
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   for (int tt = 0; tt < params.maxIters; tt++)
   {
+
+
     timestep(params, cells, tmp_cells, obstacles, ocl);
     av_velocityK(params, cells, obstacles, ocl,tt);
     cl_int err;
@@ -226,14 +229,14 @@ int main(int argc, char* argv[])
     checkError(err, "setting reduce arg 5", __LINE__);
     err = clSetKernelArg(ocl.reduce, 6, sizeof(cl_mem), &ocl.av_vels);
     checkError(err, "setting reduce arg 6", __LINE__);
-    err = clSetKernelArg(ocl.reduce, 7, sizeof(cl_int), &params.nx);
+    err = clSetKernelArg(ocl.reduce, 7, sizeof(cl_int), &length);
     checkError(err, "setting reduce arg 7", __LINE__);
     err = clSetKernelArg(ocl.reduce, 8, sizeof(cl_int), &tt);
     checkError(err, "setting reduce arg 8", __LINE__);
 
     // Enqueue kernel
     size_t global[1] = {params.nx* params.ny};
-    size_t local[1] = {params.ny};
+    size_t local[1] = {LOCALSIZE};
     err = clEnqueueNDRangeKernel(ocl.queue, ocl.reduce,
                                  1, NULL, global, local, 0, NULL, NULL);
     checkError(err, "enqueueing reduce kernel", __LINE__);
@@ -706,12 +709,12 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   ocl->results_reduce_u = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->ny, NULL, &err);
+    sizeof(cl_float) * ((parmas->nx* params->ny)/LOCALSIZE), NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
   ocl->results_reduce_cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_int) * params->ny, NULL, &err);
+    sizeof(cl_float) * ((parmas->nx* params->ny)/LOCALSIZE), NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
 
