@@ -1,7 +1,7 @@
 # Makefile
 
 EXE=d2q9-bgk
-SIZE = 128x128
+SIZE=128x128
 CC=gcc
 CFLAGS= -std=c99 -Wall -O3
 LIBS = -lm
@@ -30,3 +30,4 @@ check:
 
 clean:
 	rm -f $(EXE)
+	rm d2q9-bgk.out
