@@ -239,14 +239,30 @@ void amd_reduce(
   }
   barrier(CLK_GLOBAL_MEM_FENCE);
 
-  if (global_index == 0){
-    float sumu =0.0f;
-    int sumc =0;
-    for(int i =0; i < length;i++){
-      sumu += result_u[i];
-      sumc += result_cells[i];
+
+  // parallelise last reduction
+  // so there are nx groups of size ny so if ny >= nx we can reduce with one group which should be the case for all grids
+
+  if (get_group_id(0) == 0){
+    if (local_index < length){
+      local_sum_u[local_index] = result_u[local_index];
+      local_sum_cells[local_index] = result_cells[local_index];
+
+      barrier(CLK_LOCAL_MEM_FENCE);
+
+      for(int offset = length / 2;
+            offset > 0;
+            offset >>= 1) {
+          if (local_index < offset) {
+            local_sum_u[local_index] += local_sum_u[local_index + offset];
+            local_sum_cells[local_index] += local_sum_cells[local_index + offset];
+          }
+          barrier(CLK_LOCAL_MEM_FENCE);
+        }
+
+      if (local_index == 0) {
+        av_vels[tt] = local_sum_u[0]/(float)local_sum_cells[0];
+      }
     }
-    av_vels[tt] =sumu/(float)sumc;
-    //printf("it %d, av_vel: %f\n", tt,sumu/(float)sumc);
   }
 }
