@@ -250,8 +250,8 @@ void amd_reduce(
     int part = length/ localS;
 
     for(int i =0;i <part;i++ ){
-      local_sum_u[local_index] = result_u[local_index +length];
-      local_sum_cells[local_index] = result_cells[local_index+length];
+      local_sum_u[local_index] = result_u[local_index +length*part];
+      local_sum_cells[local_index] = result_cells[local_index+length*part];
 
       barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -276,4 +276,5 @@ void amd_reduce(
       printf("tt: %d, ls: %d, length %d \n",tt,localS,length);
     }
   }
+
 }
