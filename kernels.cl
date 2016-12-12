@@ -245,6 +245,7 @@ void amd_reduce(
 
   if (get_group_id(0) == 0){
     if (local_index < length){
+
       local_sum_u[local_index] = result_u[local_index];
       local_sum_cells[local_index] = result_cells[local_index];
 
@@ -262,6 +263,7 @@ void amd_reduce(
 
       if (local_index == 0) {
         av_vels[tt] = local_sum_u[0]/(float)local_sum_cells[0];
+        printf("ls: %d, length %d \n",get_local_size(0),length);
       }
     }
   }

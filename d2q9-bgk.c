@@ -392,7 +392,7 @@ int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl
 
   // Enqueue kernel
   size_t global[1] = {params.nx* params.ny};
-  size_t local[1] ={params.nx};
+  size_t local[1] ={params.ny};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.av_velocity,
                                1, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing av_velocity kernel", __LINE__);
