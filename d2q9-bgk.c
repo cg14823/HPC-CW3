@@ -709,12 +709,12 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   ocl->results_reduce_u = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * ((parmas->nx* params->ny)/LOCALSIZE), NULL, &err);
+    sizeof(cl_float) * ((params->nx* params->ny)/LOCALSIZE), NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
   ocl->results_reduce_cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * ((parmas->nx* params->ny)/LOCALSIZE), NULL, &err);
+    sizeof(cl_float) * ((params->nx* params->ny)/LOCALSIZE), NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
 
