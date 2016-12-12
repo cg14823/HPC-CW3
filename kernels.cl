@@ -263,7 +263,7 @@ void amd_reduce(
 
       if (local_index == 0) {
         av_vels[tt] = local_sum_u[0]/(float)local_sum_cells[0];
-        printf("ls: %d, length %d \n",get_local_size(0),length);
+        printf("tt: %d, ls: %d, length %d \n",tt,get_local_size(0),length);
       }
     }
   }
