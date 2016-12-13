@@ -461,7 +461,7 @@ int reduce (t_ocl ocl, const t_param params, int tt){
   checkError(err, "setting serialreduce arg 2", __LINE__);
   err = clSetKernelArg(ocl.serialreduce, 3, sizeof(cl_int), &tt);
   checkError(err, "setting reduce arg 3", __LINE__);
-  err = clSetKernelArg(ocl.serialreduce, 3, sizeof(cl_int), &params.nx);
+  err = clSetKernelArg(ocl.serialreduce, 4, sizeof(cl_int), &params.nx);
   checkError(err, "setting reduce arg 3", __LINE__);
 
   // Enqueue kernel
