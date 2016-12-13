@@ -238,18 +238,33 @@ void amd_reduce(
   }
 }
 
-kernel void serialReduce(global float* result_u,
+kernel void finalReduce(global float* result_u,
             global int* result_cells,
-            global float* av_vels, int tt, int length)
+            global float* av_vels,
+            local float* local_sum_u,
+            local int* local_sum_cells,
+           int tt)
 {
-  if (get_global_id(0) == 0){
-    float sumu =0.0f;
-    int sumc =0;
-    for(int i =0; i < length;i++){
-      sumu += result_u[i];
-      sumc += result_cells[i];
-    }
-    av_vels[tt] =sumu/(float)sumc;
+  int local_index = get_global_id(0);
+  // Load data into local memory
 
+  local_sum_u[local_index] = result_u[local_index];
+  local_sum_cells[local_index] = result_cells[local_index];
+
+  barrier(CLK_LOCAL_MEM_FENCE);
+
+  for(int offset = get_local_size(0) / 2;
+        offset > 0;
+        offset >>= 1) {
+
+      if (local_index < offset) {
+        local_sum_u[local_index] += local_sum_u[local_index + offset];
+        local_sum_cells[local_index] += local_sum_cells[local_index + offset];
+      }
+
+      barrier(CLK_LOCAL_MEM_FENCE);
+    }
+
+  if (local_index == 0) {
+    av_vels[tt] = local_sum_u[0]/(float)local_sum_cells[0];
   }
-}
