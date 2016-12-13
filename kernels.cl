@@ -139,19 +139,19 @@ kernel void collision_rebound_av_velocity(global t_speed* cells, global t_speed*
                                               * (d_equ[kk] - tmp_cells[cellAccess].speeds[kk]);
       local_density += cells[cellAccess].speeds[kk];
     }
-    u_x = (cells[gii].speeds[1]
-                  + cells[gii].speeds[5]
-                  + cells[gii].speeds[8]
-                  - (cells[gii].speeds[3]
-                     + cells[gii].speeds[6]
-                     + cells[gii].speeds[7]));
+    u_x = (cells[cellAccess].speeds[1]
+                  + cells[cellAccess].speeds[5]
+                  + cells[cellAccess].speeds[8]
+                  - (cells[cellAccess].speeds[3]
+                     + cells[cellAccess].speeds[6]
+                     + cells[cellAccess].speeds[7]));
     /* compute y velocity component */
-    u_y = (cells[gii].speeds[2]
-                  + cells[gii].speeds[5]
-                  + cells[gii].speeds[6]
-                  - (cells[gii].speeds[4]
-                     + cells[gii].speeds[7]
-                     + cells[gii].speeds[8]));
+    u_y = (cells[cellAccess].speeds[2]
+                  + cells[cellAccess].speeds[5]
+                  + cells[cellAccess].speeds[6]
+                  - (cells[cellAccess].speeds[4]
+                     + cells[cellAccess].speeds[7]
+                     + cells[cellAccess].speeds[8]));
 
     global_u[cellAccess] =sqrt((u_x * u_x) + (u_y * u_y))/local_density;
     global_cells[cellAccess] = 1;
@@ -172,13 +172,6 @@ kernel void collision_rebound_av_velocity(global t_speed* cells, global t_speed*
   }
 
 }
-
-
-// ** Do the reduction insted of powers of two by offset size so no modulus needed
-// reduce cols localy
-// reduce each local group
-//that should work??
-
 
 kernel
 void amd_reduce(
