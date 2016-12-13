@@ -465,8 +465,8 @@ int reduce (t_ocl ocl, const t_param params, int tt){
   checkError(err, "setting reduce arg 3", __LINE__);
 
   // Enqueue kernel
-  global = {params.nx};
-  local = {params.nx};
+  global[0] = params.nx;
+  local[0] = params.nx;
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.serialreduce,
                                1, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing serialreduce kernel", __LINE__);
