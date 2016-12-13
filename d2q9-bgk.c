@@ -94,7 +94,7 @@ typedef struct
   cl_kernel  collision_rebound;
   cl_kernel  av_velocity;
   cl_kernel  reduce;
-  cl_kernel serialReduce;
+  cl_kernel serialreduce;
 
   cl_mem cells;
   cl_mem tmp_cells;
@@ -146,6 +146,7 @@ float total_density(const t_param params, t_speed* cells);
 /* compute average velocity */
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
+int reduce (t_ocl *ocl, const t_param params, int tt);
 /* calculate Reynolds number */
 float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 
@@ -203,14 +204,13 @@ int main(int argc, char* argv[])
     ocl.queue, ocl.obstacles, CL_TRUE, 0,
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
-  int length = params.nx* params.ny /LOCALSIZE;
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   for (int tt = 0; tt < params.maxIters; tt++)
   {
     timestep(params, cells, tmp_cells, obstacles, ocl);
-    av_velocityK(params, cells, obstacles, ocl,tt);
+    av_velocityK(params, cells, obstacles, ocl);
     reduce(ocl,params,tt);
   }
 
@@ -426,7 +426,7 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
   return tot_u / (float)tot_cells;
 }
 
-int reduce (t_ocl *ocl, cons t_param params, int tt){
+int reduce (t_ocl *ocl, const t_param params, int tt){
   cl_int err;
   // Set kernel arguments
   err = clSetKernelArg(ocl.reduce, 0, sizeof(cl_mem), &ocl.global_u);
@@ -734,7 +734,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   ocl->results_reduce_cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_int) * params->nx), NULL, &err);
+    sizeof(cl_int) * params->nx, NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
 
