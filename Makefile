@@ -3,7 +3,7 @@
 EXE=d2q9-bgk
 SIZE=128x128
 CC=gcc
-CFLAGS= -std=c99 -Wall -O3
+CFLAGS= -std=c99 -Wall -O3 -ffast-math
 LIBS = -lm
 
 PLATFORM = $(shell uname -s)
