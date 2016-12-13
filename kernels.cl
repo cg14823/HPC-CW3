@@ -268,3 +268,4 @@ kernel void finalReduce(global float* result_u,
   if (local_index == 0) {
     av_vels[tt] = local_sum_u[0]/(float)local_sum_cells[0];
   }
+}
