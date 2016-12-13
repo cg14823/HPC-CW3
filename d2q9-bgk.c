@@ -91,8 +91,7 @@ typedef struct
   cl_program program;
   cl_kernel  accelerate_flow;
   cl_kernel  propagate;
-  cl_kernel  collision_rebound;
-  cl_kernel  av_velocity;
+  cl_kernel  collision_rebound_av_velocity;
   cl_kernel  reduce;
   cl_kernel finalReduce;
 
@@ -128,11 +127,9 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl);
 int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl);
 int collision_rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl);
-int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl);
 int write_values(const t_param params, t_speed* cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
@@ -145,7 +142,6 @@ float total_density(const t_param params, t_speed* cells);
 
 /* compute average velocity */
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
-int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 int reduce (t_ocl ocl, const t_param params, int tt);
 /* calculate Reynolds number */
 float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
@@ -204,13 +200,15 @@ int main(int argc, char* argv[])
     ocl.queue, ocl.obstacles, CL_TRUE, 0,
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
+
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   for (int tt = 0; tt < params.maxIters; tt++)
   {
-    timestep(params, cells, tmp_cells, obstacles, ocl);
-    av_velocityK(params, cells, obstacles, ocl);
+    accelerate_flow(params, cells, obstacles, ocl);
+    propagate(params, cells, tmp_cells, ocl);
+    collision_rebound(params, cells, tmp_cells, obstacles, ocl);
     reduce(ocl,params,tt);
   }
 
@@ -240,15 +238,6 @@ int main(int argc, char* argv[])
   printf("Elapsed system CPU time:\t%.6lf (s)\n", systim);
   write_values(params, cells, obstacles, av_vels);
   finalise(&params, &cells, &tmp_cells, &obstacles, &av_vels, ocl);
-
-  return EXIT_SUCCESS;
-}
-
-int timestep(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl)
-{
-  accelerate_flow(params, cells, obstacles, ocl);
-  propagate(params, cells, tmp_cells, ocl);
-  collision_rebound(params, cells, tmp_cells, obstacles, ocl);
 
   return EXIT_SUCCESS;
 }
@@ -317,60 +306,32 @@ int collision_rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, 
 {
   cl_int err;
   // Set kernel arguments
-  err = clSetKernelArg(ocl.collision_rebound, 0, sizeof(cl_mem), &ocl.cells);
-  checkError(err, "setting collision_rebound arg 0", __LINE__);
-  err = clSetKernelArg(ocl.collision_rebound, 1, sizeof(cl_mem), &ocl.tmp_cells);
-  checkError(err, "setting collision_rebound arg 1", __LINE__);
-  err = clSetKernelArg(ocl.collision_rebound, 2, sizeof(cl_mem), &ocl.obstacles);
-  checkError(err, "setting collision_rebound arg 2", __LINE__);
-  err = clSetKernelArg(ocl.collision_rebound, 3, sizeof(cl_int), &params.nx);
-  checkError(err, "setting collision_rebound arg 3", __LINE__);
-  err = clSetKernelArg(ocl.collision_rebound, 4, sizeof(cl_int), &params.ny);
-  checkError(err, "setting collision_rebound arg 4", __LINE__);
-  err = clSetKernelArg(ocl.collision_rebound, 5, sizeof(cl_float), &params.omega);
-  checkError(err, "setting collision_rebound arg 4", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 0, sizeof(cl_mem), &ocl.cells);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 1, sizeof(cl_mem), &ocl.tmp_cells);
+  checkError(err, "setting collision_rebound_av_velocity arg 1", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 2, sizeof(cl_mem), &ocl.obstacles);
+  checkError(err, "setting collision_rebound_av_velocity arg 2", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 3, sizeof(cl_int), &params.nx);
+  checkError(err, "setting collision_rebound_av_velocity arg 3", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 4, sizeof(cl_int), &params.ny);
+  checkError(err, "setting collision_rebound_av_velocity arg 4", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 5, sizeof(cl_float), &params.omega);
+  checkError(err, "setting collision_rebound_av_velocity arg 4", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 6, sizeof(cl_mem), &ocl.global_u);
+  checkError(err, "setting collision_rebound_av_velocity arg 6", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 7, sizeof(cl_mem), &ocl.global_cells);
+  checkError(err, "setting collision_rebound_av_velocity arg 7", __LINE__);
 
   // Enqueue kernel
   size_t global[2] = {params.nx, params.ny};
-  err = clEnqueueNDRangeKernel(ocl.queue, ocl.collision_rebound,
+  err = clEnqueueNDRangeKernel(ocl.queue, ocl.collision_rebound_av_velocity,
                                2, NULL, global, NULL, 0, NULL, NULL);
-  checkError(err, "enqueueing ewbound kernel", __LINE__);
+  checkError(err, "enqueueing collision_rebound_av_velocity kernel", __LINE__);
 
   // Wait for kernel to finish
   err = clFinish(ocl.queue);
-  checkError(err, "waiting for collision_rebound kernel", __LINE__);
-
-  return EXIT_SUCCESS;
-}
-
-int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl)
-{
-  return EXIT_SUCCESS;
-}
-
-int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl)
-{
-  cl_int err;
-  // Set kernel arguments
-  err = clSetKernelArg(ocl.av_velocity, 0, sizeof(cl_mem), &ocl.cells);
-  checkError(err, "setting av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 1, sizeof(cl_mem), &ocl.obstacles);
-  checkError(err, "setting av_velocity arg 1", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 2, sizeof(cl_mem),&ocl.global_u);
-  checkError(err, "setting av_velocity arg 4", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 3, sizeof(cl_mem),&ocl.global_cells);
-  checkError(err, "setting av_velocity arg 5", __LINE__);
-
-  // Enqueue kernel
-  size_t global[1] = {params.nx* params.ny};
-  size_t local[1] ={params.ny};
-  err = clEnqueueNDRangeKernel(ocl.queue, ocl.av_velocity,
-                               1, NULL, global, local, 0, NULL, NULL);
-  checkError(err, "enqueueing av_velocity kernel", __LINE__);
-
-  // Wait for kernel to finish
-  err = clFinish(ocl.queue);
-  checkError(err, "waiting for av_velocity kernel", __LINE__);
+  checkError(err, "waiting for collision_rebound_av_velocity kernel", __LINE__);
 
   return EXIT_SUCCESS;
 }
@@ -689,10 +650,8 @@ int initialise(const char* paramfile, const char* obstaclefile,
   checkError(err, "creating accelerate_flow kernel", __LINE__);
   ocl->propagate = clCreateKernel(ocl->program, "propagate", &err);
   checkError(err, "creating propagate kernel", __LINE__);
-  ocl->collision_rebound = clCreateKernel(ocl->program, "collision_rebound", &err);
+  ocl->collision_rebound_av_velocity = clCreateKernel(ocl->program, "collision_rebound_av_velocity", &err);
   checkError(err, "creating collision_rebound kernel", __LINE__);
-  ocl->av_velocity = clCreateKernel(ocl->program, "av_velocity", &err);
-  checkError(err, "creating av_velocity kernel", __LINE__);
   ocl->reduce = clCreateKernel(ocl->program, "amd_reduce", &err);
   checkError(err, "creating reduce kernel", __LINE__);
   ocl->finalReduce = clCreateKernel(ocl->program, "finalReduce", &err);
@@ -770,11 +729,10 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
   clReleaseMemObject(ocl.global_u);
   clReleaseMemObject(ocl.global_cells);
   clReleaseKernel(ocl.reduce);
-  clReleaseKernel(ocl.av_velocity);
   clReleaseKernel(ocl.accelerate_flow);
   clReleaseKernel(ocl.propagate);
   clReleaseKernel(ocl.finalReduce);
-  clReleaseKernel(ocl.collision_rebound);
+  clReleaseKernel(ocl.collision_rebound_av_velocity);
   clReleaseProgram(ocl.program);
   clReleaseCommandQueue(ocl.queue);
   clReleaseContext(ocl.context);
