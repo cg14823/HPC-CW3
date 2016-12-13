@@ -116,40 +116,29 @@ kernel void collision_rebound_av_velocity(global t_speed* cells, global t_speed*
     /* velocity squared */
     float u_sq = u_x * u_x + u_y * u_y;
 
-    /* relaxation step */
-    cells[cellAccess].speeds[0] = tmp_cells[cellAccess].speeds[0]
-                                            + omega
-                                            * (w0 * local_density * (1.0f - 1.5f * u_sq) - tmp_cells[cellAccess].speeds[0]);
-    cells[cellAccess].speeds[1] = tmp_cells[cellAccess].speeds[1]
-                                            + omega
-                                            * (w1 * local_density * (1.0f + 3.0f * (u_x + u_x * u_x) - 1.5f * u_y * u_y) - tmp_cells[cellAccess].speeds[1]);
-    cells[cellAccess].speeds[2] = tmp_cells[cellAccess].speeds[2]
-                                            + omega
-                                            * (w1 * local_density * (1.0f + 3.0f * (u_y + u_y * u_y) - 1.5f * u_x * u_x) - tmp_cells[cellAccess].speeds[2]);
-    cells[cellAccess].speeds[3] = tmp_cells[cellAccess].speeds[3]
-                                            + omega
-                                            * (w1 * local_density * (1.0f + 3.0f * (-u_x + u_x * u_x) - 1.5f * u_y * u_y) - tmp_cells[cellAccess].speeds[3]);
-    cells[cellAccess].speeds[4] = tmp_cells[cellAccess].speeds[4]
-                                            + omega
-                                            * (w1 * local_density * (1.0f + 3.0f * (-u_y + u_y * u_y) - 1.5f * u_x *u_x) - tmp_cells[cellAccess].speeds[4]);
-    cells[cellAccess].speeds[5] = tmp_cells[cellAccess].speeds[5]
-                                            + omega
-                                            * (w2 * local_density * (1.0f + 3.0f * (u_sq + u_x + u_y) + 9.0f * u_x * u_y) - tmp_cells[cellAccess].speeds[5]);
-    cells[cellAccess].speeds[6] = tmp_cells[cellAccess].speeds[6]
-                                            + omega
-                                            * (w2 * local_density * (1.0f + 3.0f * (u_sq - u_x + u_y) - 9.0f * u_x * u_y) - tmp_cells[cellAccess].speeds[6]);
-    cells[cellAccess].speeds[7] = tmp_cells[cellAccess].speeds[7]
-                                            + omega
-                                            * (w2 * local_density * (1.0f + 3.0f * (u_sq - u_x - u_y) + 9.0f * u_x * u_y) - tmp_cells[cellAccess].speeds[7]);
-    cells[cellAccess].speeds[8] = tmp_cells[cellAccess].speeds[8]
-                                            + omega
-                                            * (w2 * local_density * (1.0f + 3.0f * (u_sq + u_x - u_y) - 9.0f * u_x * u_y) - tmp_cells[cellAccess].speeds[8]);
+    float d_equ[NSPEEDS];
+    /* zero velocity density: weight w0 */
+    d_equ[0] = w0 * local_density * (1.0f - 1.5f * u_sq);
+    /* axis speeds: weight w1 */
+    d_equ[1] = w1 * local_density * (1.0f + 3.0f * (u_x + u_x * u_x) - 1.5f * u_y * u_y);
+    d_equ[2] = w1 * local_density * (1.0f + 3.0f * (u_y + u_y * u_y) - 1.5f * u_x * u_x);
+    d_equ[3] = w1 * local_density * (1.0f + 3.0f * (-u_x + u_x * u_x) - 1.5f * u_y * u_y);
+    d_equ[4] = w1 * local_density * (1.0f + 3.0f * (-u_y + u_y * u_y) - 1.5f * u_x *u_x);
+    /* diagonal speeds: weight w2 */
+    d_equ[5] = w2 * local_density * (1.0f + 3.0f * (u_sq + u_x + u_y) + 9.0f * u_x * u_y);
+    d_equ[6] = w2 * local_density * (1.0f + 3.0f * (u_sq - u_x + u_y) - 9.0f * u_x * u_y);
+    d_equ[7] = w2 * local_density * (1.0f + 3.0f * (u_sq - u_x - u_y) + 9.0f * u_x * u_y);
+    d_equ[8] = w2 * local_density * (1.0f + 3.0f * (u_sq + u_x - u_y) - 9.0f * u_x * u_y);
 
-  local_density = cells[cellAccess].speeds[0]+cells[cellAccess].speeds[1]
-                    +cells[cellAccess].speeds[2]+cells[cellAccess].speeds[3]
-                    +cells[cellAccess].speeds[4]+cells[cellAccess].speeds[5]
-                    +cells[cellAccess].speeds[6]+cells[cellAccess].speeds[7]
-                    +cells[cellAccess].speeds[8];
+    /* relaxation step */
+    local_density =0.0f;
+    for (int kk = 0; kk < NSPEEDS; kk++)
+    {
+      cells[cellAccess].speeds[kk] = tmp_cells[cellAccess].speeds[kk]
+                                              + omega
+                                              * (d_equ[kk] - tmp_cells[cellAccess].speeds[kk]);
+      local_density += cells[cellAccess].speeds[kk];
+    }
 
     u_x = (cells[cellAccess].speeds[1]
                   + cells[cellAccess].speeds[5]
