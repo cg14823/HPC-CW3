@@ -146,7 +146,7 @@ float total_density(const t_param params, t_speed* cells);
 /* compute average velocity */
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
-int reduce (t_ocl *ocl, const t_param params, int tt);
+int reduce (t_ocl ocl, const t_param params, int tt);
 /* calculate Reynolds number */
 float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 
@@ -426,7 +426,7 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
   return tot_u / (float)tot_cells;
 }
 
-int reduce (t_ocl *ocl, const t_param params, int tt){
+int reduce (t_ocl ocl, const t_param params, int tt){
   cl_int err;
   // Set kernel arguments
   err = clSetKernelArg(ocl.reduce, 0, sizeof(cl_mem), &ocl.global_u);
