@@ -209,14 +209,11 @@ void amd_reduce(
             local float* local_sum_u,
             local int* local_sum_cells,
             global float* result_u,
-            global int* result_cells,
-            global float* av_vels,
-            int length, int tt) {
-
+            global int* result_cells)
+{
   int global_index = get_global_id(0);
   int local_index = get_local_id(0);
   // Load data into local memory
-
 
   local_sum_u[local_index] = global_u[global_index];
   local_sum_cells[local_index] = global_tot_cells[global_index];
@@ -226,10 +223,12 @@ void amd_reduce(
   for(int offset = get_local_size(0) / 2;
         offset > 0;
         offset >>= 1) {
+
       if (local_index < offset) {
         local_sum_u[local_index] += local_sum_u[local_index + offset];
         local_sum_cells[local_index] += local_sum_cells[local_index + offset];
       }
+
       barrier(CLK_LOCAL_MEM_FENCE);
     }
 
@@ -237,44 +236,20 @@ void amd_reduce(
     result_u[get_group_id(0)] = local_sum_u[0];
     result_cells[get_group_id(0)] = local_sum_cells[0];
   }
-  barrier(CLK_GLOBAL_MEM_FENCE);
+}
 
-
-  // parallelise last reduction
-  // so there are nx groups of size ny so if ny >= nx we can reduce with one group which should be the case for all grids
-
-  if (get_group_id(0) == 0){
-    float sumu = 0.0f;
+kernel void serialReduce(global float* result_u,
+            global int* result_cells,
+            global float* av_vels, int tt, int length)
+{
+  if (get_global_id(0) == 0){
+    float sumu =0.0f;
     int sumc =0;
-    int localS = get_local_size(0);
-    int part = length/ localS;
-
-    for(int i =0;i <part;i++ ){
-      local_sum_u[local_index] = result_u[local_index +length*part];
-      local_sum_cells[local_index] = result_cells[local_index+length*part];
-
-      barrier(CLK_LOCAL_MEM_FENCE);
-
-      for(int offset = length / 2;
-            offset > 0;
-            offset >>= 1) {
-          if (local_index < offset) {
-            local_sum_u[local_index] += local_sum_u[local_index + offset];
-            local_sum_cells[local_index] += local_sum_cells[local_index + offset];
-          }
-          barrier(CLK_LOCAL_MEM_FENCE);
-        }
-
-      if (local_index == 0) {
-        sumu += local_sum_u[0];
-        sumc += local_sum_cells[0];
-      }
+    for(int i =0; i < length;i++){
+      sumu += result_u[i];
+      sumc += result_cells[i];
     }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    if (local_index == 0) {
-      av_vels[tt] = sumu/(float) sumc;
-      printf("tt: %d, ls: %d, length %d \n",tt,localS,length);
-    }
+    av_vels[tt] =sumu/(float)sumc;
+
   }
-
 }
