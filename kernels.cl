@@ -94,7 +94,7 @@ kernel void collision_rebound_av_velocity(global t_speed* cells, global t_speed*
                     +tmp_cells[cellAccess].speeds[2]+tmp_cells[cellAccess].speeds[3]
                     +tmp_cells[cellAccess].speeds[4]+tmp_cells[cellAccess].speeds[5]
                     +tmp_cells[cellAccess].speeds[6]+tmp_cells[cellAccess].speeds[7]
-                    +tmp_cells[cellAccess].speeds[8]+tmp_cells[cellAccess].speeds[9];
+                    +tmp_cells[cellAccess].speeds[8];
 
     /* compute x velocity component */
     float u_x = (tmp_cells[cellAccess].speeds[1]
@@ -149,7 +149,7 @@ kernel void collision_rebound_av_velocity(global t_speed* cells, global t_speed*
                     +cells[cellAccess].speeds[2]+cells[cellAccess].speeds[3]
                     +cells[cellAccess].speeds[4]+cells[cellAccess].speeds[5]
                     +cells[cellAccess].speeds[6]+cells[cellAccess].speeds[7]
-                    +cells[cellAccess].speeds[8]+cells[cellAccess].speeds[9];
+                    +cells[cellAccess].speeds[8];
 
     u_x = (cells[cellAccess].speeds[1]
                   + cells[cellAccess].speeds[5]
