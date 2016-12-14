@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
   double tic, toc;              /* floating point numbers to calculate elapsed wallclock time */
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
-  soa_speeds* soa_cells;
+  soa_speeds soa_cells;
 
   /* parse the command line */
   if (argc != 3)
@@ -210,6 +210,7 @@ int main(int argc, char* argv[])
   soa_cells.s7 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
   soa_cells.s8 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
 
+
   for (int i =0; i<params.nx*params.ny;i++){
     soa_cells.s0[i] = cells[i].speeds[0];
     soa_cells.s1[i] = cells[i].speeds[1];
@@ -224,7 +225,7 @@ int main(int argc, char* argv[])
   // Write cells to OpenCL buffer
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(soa_speeds) * params.nx * params.ny, soa_cells, 0, NULL, NULL);
+    sizeof(soa_speeds) * params.nx * params.ny, &soa_cells, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   // Write obstacles to OpenCL buffer
@@ -259,7 +260,7 @@ int main(int argc, char* argv[])
 
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(soa_speeds) * params.nx*params.ny, soa_cells, 0, NULL, NULL);
+    sizeof(soa_speeds) * params.nx*params.ny, &soa_cells, 0, NULL, NULL);
   checkError(err, "reading av_vel from device data", __LINE__);
 
   for (int i =0; i<params.nx*params.ny;i++){
