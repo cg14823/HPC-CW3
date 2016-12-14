@@ -67,7 +67,7 @@
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define OCLFILE         "kernels.cl"
-#define LOCALSIZE       64
+#define LOCALSIZE       256
 
 /* struct to hold the parameter values */
 typedef struct
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
     ocl.queue, ocl.obstacles, CL_TRUE, 0,
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
-  int size = (params.nx*params.ny)/256
+  int size = (params.nx*params.ny)/256;
 
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
