@@ -4,8 +4,16 @@
 
 typedef struct
 {
-  float sNSPEEDS];
-} t_speed;
+  float* s0;
+  float* s1;
+  float* s2;
+  float* s3;
+  float* s4;
+  float* s5;
+  float* s6;
+  float* s7;
+  float* s8;
+}soa_speeds;
 
 kernel void accelerate_flow(global soa_speeds* cells,
                             global int* obstacles,
