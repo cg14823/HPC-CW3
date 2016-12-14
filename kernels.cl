@@ -66,15 +66,15 @@ kernel void propagate(global soa_speeds* cells,
   /* propagate densities to neighbouring cells, following
   ** appropriate directions of travel and writing into
   ** scratch space grid */
-  tmp_cells.s0[ii * nx + jj] = cells.s0[ii * nx + jj]; /* central cell, no movement */
-	tmp_cells.s1[ii * nx + jj] = cells.s1[ii * nx + x_w]; /* east */
-	tmp_cells.s2[ii * nx + jj] = cells.s2[y_s * nx + jj]; /* north */
-	tmp_cells.s3[ii * nx + jj] = cells.s3[ii * nx + x_e]; /* west */
-	tmp_cells.s4[ii * nx + jj] = cells.s4[y_n * nx + jj]; /* south */
-	tmp_cells.s5[ii * nx + jj] = cells.s5[y_s * nx + x_w]; /* north-east */
-	tmp_cells.s6[ii * nx + jj] = cells.s6[y_s * nx + x_e]; /* north-west */
-	tmp_cells.s7[ii * nx + jj] = cells.s7[y_n * nx + x_e]; /* south-west */
-	tmp_cells.s8[ii * nx + jj] = cells.s8[y_n * nx + x_w]; /* south-east */
+  tmp_cells->s0[ii * nx + jj] = cells.s0[ii * nx + jj]; /* central cell, no movement */
+	tmp_cells->s1[ii * nx + jj] = cells.s1[ii * nx + x_w]; /* east */
+	tmp_cells->s2[ii * nx + jj] = cells.s2[y_s * nx + jj]; /* north */
+	tmp_cells->s3[ii * nx + jj] = cells.s3[ii * nx + x_e]; /* west */
+	tmp_cells->s4[ii * nx + jj] = cells.s4[y_n * nx + jj]; /* south */
+	tmp_cells->s5[ii * nx + jj] = cells.s5[y_s * nx + x_w]; /* north-east */
+	tmp_cells->s6[ii * nx + jj] = cells.s6[y_s * nx + x_e]; /* north-west */
+	tmp_cells->s7[ii * nx + jj] = cells.s7[y_n * nx + x_e]; /* south-west */
+	tmp_cells->s8[ii * nx + jj] = cells.s8[y_n * nx + x_w]; /* south-east */
 }
 
 kernel void collision_rebound_av_velocity(global soa_speeds* cells, global soa_speeds* tmp_cells,
@@ -97,27 +97,27 @@ kernel void collision_rebound_av_velocity(global soa_speeds* cells, global soa_s
   if (!obstacles[index])
   {
     /* compute local density total */
-    float local_density = tmp_cells.s0[index]+tmp_cells.s1[index]
-                    +tmp_cells.s2[index]+tmp_cells.s3[index]
-                    +tmp_cells.s4[index]+tmp_cells.s5[index]
-                    +tmp_cells.s6[index]+tmp_cells.s7[index]
-                    +tmp_cells.s8[index];
+    float local_density = tmp_cells->s0[index]+tmp_cells->s1[index]
+                    +tmp_cells->s2[index]+tmp_cells->s3[index]
+                    +tmp_cells->s4[index]+tmp_cells->s5[index]
+                    +tmp_cells->s6[index]+tmp_cells->s7[index]
+                    +tmp_cells->s8[index];
 
     /* compute x velocity component */
-    float u_x = (tmp_cells.s1[index]
-                  + tmp_cells.s5[index]
-                  + tmp_cells.s8[index]
-                  - (tmp_cells.s3[index]
-                     + tmp_cells.s6[index]
-                     + tmp_cells.s7[index]))
+    float u_x = (tmp_cells->s1[index]
+                  + tmp_cells->s5[index]
+                  + tmp_cells->s8[index]
+                  - (tmp_cells->s3[index]
+                     + tmp_cells->s6[index]
+                     + tmp_cells->s7[index]))
                  / local_density;
     /* compute y velocity component */
-    float u_y = (tmp_cells.s2[index]
-                  + tmp_cells.s5[index]
-                  + tmp_cells.s6[index]
-                  - (tmp_cells.s4[index]
-                     + tmp_cells.s7[index]
-                     + tmp_cells.s8[index]))
+    float u_y = (tmp_cells->s2[index]
+                  + tmp_cells->s5[index]
+                  + tmp_cells->s6[index]
+                  - (tmp_cells->s4[index]
+                     + tmp_cells->s7[index]
+                     + tmp_cells->s8[index]))
                  / local_density;
 
     /* velocity squared */
@@ -140,15 +140,15 @@ kernel void collision_rebound_av_velocity(global soa_speeds* cells, global soa_s
     /* relaxation step */
 
 
-    cells.s0[index] = tmp_cells.s0[index]+ omega* (d_equ[0] - tmp_cells.s0[index]);
-    cells.s1[index] = tmp_cells.s1[index]+ omega* (d_equ[1] - tmp_cells.s1[index]);
-    cells.s2[index] = tmp_cells.s2[index]+ omega* (d_equ[2] - tmp_cells.s2[index]);
-    cells.s3[index] = tmp_cells.s3[index]+ omega* (d_equ[3] - tmp_cells.s3[index]);
-    cells.s4[index] = tmp_cells.s4[index]+ omega* (d_equ[4] - tmp_cells.s4[index]);
-    cells.s5[index] = tmp_cells.s5[index]+ omega* (d_equ[5] - tmp_cells.s5[index]);
-    cells.s6[index] = tmp_cells.s6[index]+ omega* (d_equ[6] - tmp_cells.s6[index]);
-    cells.s7[index] = tmp_cells.s7[index]+ omega* (d_equ[7] - tmp_cells.s7[index]);
-    cells.s8[index] = tmp_cells.s8[index]+ omega* (d_equ[8] - tmp_cells.s8[index]);
+    cells.s0[index] = tmp_cells->s0[index]+ omega* (d_equ[0] - tmp_cells->s0[index]);
+    cells.s1[index] = tmp_cells->s1[index]+ omega* (d_equ[1] - tmp_cells->s1[index]);
+    cells.s2[index] = tmp_cells->s2[index]+ omega* (d_equ[2] - tmp_cells->s2[index]);
+    cells.s3[index] = tmp_cells->s3[index]+ omega* (d_equ[3] - tmp_cells->s3[index]);
+    cells.s4[index] = tmp_cells->s4[index]+ omega* (d_equ[4] - tmp_cells->s4[index]);
+    cells.s5[index] = tmp_cells->s5[index]+ omega* (d_equ[5] - tmp_cells->s5[index]);
+    cells.s6[index] = tmp_cells->s6[index]+ omega* (d_equ[6] - tmp_cells->s6[index]);
+    cells.s7[index] = tmp_cells->s7[index]+ omega* (d_equ[7] - tmp_cells->s7[index]);
+    cells.s8[index] = tmp_cells->s8[index]+ omega* (d_equ[8] - tmp_cells->s8[index]);
 
 
     local_density = cells.s0[index]+cells.s1[index]
@@ -176,14 +176,14 @@ kernel void collision_rebound_av_velocity(global soa_speeds* cells, global soa_s
 
   }
   else{
-    cells.s1[index] = tmp_cells.s3[index];
-    cells.s2[index] = tmp_cells.s4[index];
-    cells.s3[index] = tmp_cells.s1[index];
-    cells.s4[index] = tmp_cells.s2[index];
-    cells.s5[index] = tmp_cells.s7[index];
-    cells.s6[index] = tmp_cells.s8[index];
-    cells.s7[index] = tmp_cells.s5[index];
-    cells.s8[index] = tmp_cells.s6[index];
+    cells.s1[index] = tmp_cells->s3[index];
+    cells.s2[index] = tmp_cells->s4[index];
+    cells.s3[index] = tmp_cells->s1[index];
+    cells.s4[index] = tmp_cells->s2[index];
+    cells.s5[index] = tmp_cells->s7[index];
+    cells.s6[index] = tmp_cells->s8[index];
+    cells.s7[index] = tmp_cells->s5[index];
+    cells.s8[index] = tmp_cells->s6[index];
 
     global_u[index] =0.0f;
     global_cells[index] = 0;
