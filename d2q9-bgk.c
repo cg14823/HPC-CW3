@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
     ocl.queue, ocl.obstacles, CL_TRUE, 0,
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
-  int size = (params.nx*params.ny)/64;
+  int size = (params.nx*params.ny)/2048;
 
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -395,9 +395,9 @@ int reduce (t_ocl ocl, const t_param params, int tt, int size){
   checkError(err, "setting reduce arg 0", __LINE__);
   err = clSetKernelArg(ocl.reduce, 1, sizeof(cl_mem), &ocl.global_cells);
   checkError(err, "setting reduce arg 1", __LINE__);
-  err = clSetKernelArg(ocl.reduce, 2, sizeof(cl_float)*64,NULL);
+  err = clSetKernelArg(ocl.reduce, 2, sizeof(cl_float)*2048,NULL);
   checkError(err, "setting reduce arg 2", __LINE__);
-  err = clSetKernelArg(ocl.reduce, 3, sizeof(cl_int)*64, NULL);
+  err = clSetKernelArg(ocl.reduce, 3, sizeof(cl_int)*2048, NULL);
   checkError(err, "setting reduce arg 3", __LINE__);
   err = clSetKernelArg(ocl.reduce, 4, sizeof(cl_mem), &ocl.results_reduce_u);
   checkError(err, "setting reduce arg 4", __LINE__);
@@ -406,7 +406,7 @@ int reduce (t_ocl ocl, const t_param params, int tt, int size){
 
   // Enqueue kernel
   size_t global[1] = {params.nx* params.ny};
-  size_t local[1] = {64};
+  size_t local[1] = {2048};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.reduce,
                                1, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing reduce kernel", __LINE__);
@@ -691,12 +691,12 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   ocl->results_reduce_u = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) *((params->nx*params->ny)/64), NULL, &err);
+    sizeof(cl_float) *((params->nx*params->ny)/2048), NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
   ocl->results_reduce_cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_int)*((params->nx*params->ny)/64), NULL, &err);
+    sizeof(cl_int)*((params->nx*params->ny)/2048), NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
 
