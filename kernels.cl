@@ -15,7 +15,7 @@ typedef struct
   float* s8;
 }soa_speeds;
 
-kernel void accelerate_flow(global soa_speeds cells,
+kernel void accelerate_flow(global soa_speeds* cells,
                             global int* obstacles,
                             int nx, int ny,
                             float density, float accel)
@@ -48,8 +48,8 @@ kernel void accelerate_flow(global soa_speeds cells,
   }
 }
 
-kernel void propagate(global soa_speeds cells,
-                      global soa_speeds tmp_cells,
+kernel void propagate(global soa_speeds* cells,
+                      global soa_speeds* tmp_cells,
                       global int* obstacles,
                       int nx, int ny)
 {
@@ -77,7 +77,7 @@ kernel void propagate(global soa_speeds cells,
 	tmp_cells.s8[ii * nx + jj] = cells.s8[y_n * nx + x_w]; /* south-east */
 }
 
-kernel void collision_rebound_av_velocity(global soa_speeds cells, global soa_speeds tmp_cells,
+kernel void collision_rebound_av_velocity(global soa_speeds* cells, global soa_speeds* tmp_cells,
                               global int* obstacles,int nx, int ny, float omega,
                               global float* global_u,
                               global int* global_cells)
