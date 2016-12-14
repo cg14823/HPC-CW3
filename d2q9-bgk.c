@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
   double tic, toc;              /* floating point numbers to calculate elapsed wallclock time */
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
-  soa_speeds *soa_cells;
+  soa_speeds *soa_cells = NULL;
 
   /* parse the command line */
   if (argc != 3)
