@@ -142,7 +142,7 @@ float total_density(const t_param params, t_speed* cells);
 
 /* compute average velocity */
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
-int reduce (t_ocl ocl, const t_param params, int tt);
+int reduce (t_ocl ocl, const t_param params, int tt, int size);
 /* calculate Reynolds number */
 float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 
@@ -200,6 +200,7 @@ int main(int argc, char* argv[])
     ocl.queue, ocl.obstacles, CL_TRUE, 0,
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
+  int size = (params.nx*params.ny)/256
 
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
@@ -209,7 +210,7 @@ int main(int argc, char* argv[])
     accelerate_flow(params, cells, obstacles, ocl);
     propagate(params, cells, tmp_cells, ocl);
     collision_rebound(params, cells, tmp_cells, obstacles, ocl);
-    reduce(ocl,params,tt);
+    reduce(ocl,params,tt,size);
   }
 
   gettimeofday(&timstr, NULL);
@@ -420,15 +421,15 @@ int reduce (t_ocl ocl, const t_param params, int tt){
   checkError(err, "setting reduce arg 1", __LINE__);
   err = clSetKernelArg(ocl.finalReduce, 2, sizeof(cl_mem), &ocl.av_vels);
   checkError(err, "setting finalReduce arg 2", __LINE__);
-  err = clSetKernelArg(ocl.finalReduce, 3, sizeof(cl_float)*((params.nx*params.ny)/256),NULL);
+  err = clSetKernelArg(ocl.finalReduce, 3, sizeof(cl_float)*size,NULL);
   checkError(err, "setting reduce arg 3", __LINE__);
-  err = clSetKernelArg(ocl.finalReduce, 4, sizeof(cl_int)*((params.nx*params.ny)/256), NULL);
+  err = clSetKernelArg(ocl.finalReduce, 4, sizeof(cl_int)*size, NULL);
   checkError(err, "setting reduce arg 4", __LINE__);
   err = clSetKernelArg(ocl.finalReduce, 5, sizeof(cl_int), &tt);
   checkError(err, "setting reduce arg 5", __LINE__);
 
   // Enqueue kernel
-  global[0] = (params.nx*params.ny)/256;
+  global[0] = size;
 
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.finalReduce,
                                1, NULL, global, global, 0, NULL, NULL);
