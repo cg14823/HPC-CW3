@@ -324,9 +324,9 @@ int collision_rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, 
   checkError(err, "setting collision_rebound_av_velocity arg 7", __LINE__);
 
   // Enqueue kernel
-  size_t global[2] = {params.nx, params.ny};
+  size_t global[1] = {params.nx * params.ny};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.collision_rebound_av_velocity,
-                               2, NULL, global, NULL, 0, NULL, NULL);
+                               1, NULL, global, NULL, 0, NULL, NULL);
   checkError(err, "enqueueing collision_rebound_av_velocity kernel", __LINE__);
 
   // Wait for kernel to finish
