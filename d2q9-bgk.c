@@ -394,9 +394,9 @@ int reduce (t_ocl ocl, const t_param params, int tt){
   checkError(err, "setting reduce arg 0", __LINE__);
   err = clSetKernelArg(ocl.reduce, 1, sizeof(cl_mem), &ocl.global_cells);
   checkError(err, "setting reduce arg 1", __LINE__);
-  err = clSetKernelArg(ocl.reduce, 2, sizeof(cl_float)*params.ny,NULL);
+  err = clSetKernelArg(ocl.reduce, 2, sizeof(cl_float)*128,NULL);
   checkError(err, "setting reduce arg 2", __LINE__);
-  err = clSetKernelArg(ocl.reduce, 3, sizeof(cl_int)*params.ny, NULL);
+  err = clSetKernelArg(ocl.reduce, 3, sizeof(cl_int)*128, NULL);
   checkError(err, "setting reduce arg 3", __LINE__);
   err = clSetKernelArg(ocl.reduce, 4, sizeof(cl_mem), &ocl.results_reduce_u);
   checkError(err, "setting reduce arg 4", __LINE__);
@@ -405,7 +405,7 @@ int reduce (t_ocl ocl, const t_param params, int tt){
 
   // Enqueue kernel
   size_t global[1] = {params.nx* params.ny};
-  size_t local[1] = {params.ny};
+  size_t local[1] = {128};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.reduce,
                                1, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing reduce kernel", __LINE__);
@@ -420,16 +420,16 @@ int reduce (t_ocl ocl, const t_param params, int tt){
   checkError(err, "setting reduce arg 1", __LINE__);
   err = clSetKernelArg(ocl.finalReduce, 2, sizeof(cl_mem), &ocl.av_vels);
   checkError(err, "setting finalReduce arg 2", __LINE__);
-  err = clSetKernelArg(ocl.finalReduce, 3, sizeof(cl_float)*params.nx,NULL);
+  err = clSetKernelArg(ocl.finalReduce, 3, sizeof(cl_float)*((params.nx*params.ny)/128),NULL);
   checkError(err, "setting reduce arg 3", __LINE__);
-  err = clSetKernelArg(ocl.finalReduce, 4, sizeof(cl_int)*params.nx, NULL);
+  err = clSetKernelArg(ocl.finalReduce, 4, sizeof(cl_int)*((params.nx*params.ny)/128), NULL);
   checkError(err, "setting reduce arg 4", __LINE__);
   err = clSetKernelArg(ocl.finalReduce, 5, sizeof(cl_int), &tt);
   checkError(err, "setting reduce arg 5", __LINE__);
 
   // Enqueue kernel
-  global[0] = params.nx;
-  local[0] = params.nx;
+  global[0] = (params.nx*params.ny)/128;
+  local[0] = (params.nx*params.ny)/128;
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.finalReduce,
                                1, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing finalReduce kernel", __LINE__);
@@ -690,12 +690,12 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   ocl->results_reduce_u = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx, NULL, &err);
+    sizeof(cl_float) *((params.nx*params.ny)/128), NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
   ocl->results_reduce_cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_int) * params->nx, NULL, &err);
+    sizeof(cl_int)*((params.nx*params.ny)/128), NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
 
