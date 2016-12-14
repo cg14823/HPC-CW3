@@ -185,8 +185,7 @@ int main(int argc, char* argv[])
   double tic, toc;              /* floating point numbers to calculate elapsed wallclock time */
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
-  soa_speeds soa_cells;
-  soa_speeds soa_tmp_cells;
+  soa_speeds* soa_cells;
 
   /* parse the command line */
   if (argc != 3)
@@ -210,15 +209,6 @@ int main(int argc, char* argv[])
   soa_cells.s6 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
   soa_cells.s7 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
   soa_cells.s8 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_tmp_cells.s0 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_tmp_cells.s1 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_tmp_cells.s2 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_tmp_cells.s3 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_tmp_cells.s4 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_tmp_cells.s5 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_tmp_cells.s6 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_tmp_cells.s7 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_tmp_cells.s8 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
 
   for (int i =0; i<params.nx*params.ny;i++){
     soa_cells.s0[i] = cells[i].speeds[0];
