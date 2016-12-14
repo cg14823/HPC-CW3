@@ -67,7 +67,6 @@
 #define FINALSTATEFILE  "final_state.dat"
 #define AVVELSFILE      "av_vels.dat"
 #define OCLFILE         "kernels.cl"
-#define LOCALSIZE       256
 
 /* struct to hold the parameter values */
 typedef struct
@@ -113,6 +112,19 @@ typedef struct
   float speeds[NSPEEDS];
 } t_speed;
 
+typedef struct
+{
+  float* s0;
+  float* s1;
+  float* s2;
+  float* s3;
+  float* s4;
+  float* s5;
+  float* s6;
+  float* s7;
+  float* s8;
+}soa_speeds;
+
 /*
 ** function prototypes
 */
@@ -127,9 +139,9 @@ int initialise(const char* paramfile, const char* obstaclefile,
 ** timestep calls, in order, the functions:
 ** accelerate_flow(), propagate(), rebound() & collision()
 */
-int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
-int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl);
-int collision_rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl);
+int accelerate_flow(const t_param params, t_ocl ocl);
+int propagate(const t_param params, t_ocl ocl);
+int collision_rebound(const t_param params, t_ocl ocl);
 int write_values(const t_param params, t_speed* cells, int* obstacles, float* av_vels);
 
 /* finalise, including freeing up allocated memory */
@@ -142,7 +154,7 @@ float total_density(const t_param params, t_speed* cells);
 
 /* compute average velocity */
 float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
-int reduce (t_ocl ocl, const t_param params, int tt, int size);
+int reduce (t_ocl ocl, const t_param params, int tt);
 /* calculate Reynolds number */
 float calc_reynolds(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl);
 
@@ -173,6 +185,8 @@ int main(int argc, char* argv[])
   double tic, toc;              /* floating point numbers to calculate elapsed wallclock time */
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
+  soa_speeds soa_cells;
+  soa_speeds soa_tmp_cells;
 
   /* parse the command line */
   if (argc != 3)
@@ -187,12 +201,40 @@ int main(int argc, char* argv[])
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl);
   /* iterate for maxIters timesteps */
+  soa_cells.s0 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s1 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s2 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s3 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s4 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s5 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s6 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s7 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s8 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_tmp_cells.s0 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_tmp_cells.s1 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_tmp_cells.s2 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_tmp_cells.s3 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_tmp_cells.s4 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_tmp_cells.s5 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_tmp_cells.s6 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_tmp_cells.s7 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_tmp_cells.s8 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
 
-
+  for (int i =0; i<params.nx*params.ny;i++){
+    soa_cells.s0[i] = cells[i].speeds[0];
+    soa_cells.s1[i] = cells[i].speeds[1];
+    soa_cells.s2[i] = cells[i].speeds[2];
+    soa_cells.s3[i] = cells[i].speeds[3];
+    soa_cells.s4[i] = cells[i].speeds[4];
+    soa_cells.s5[i] = cells[i].speeds[5];
+    soa_cells.s6[i] = cells[i].speeds[6];
+    soa_cells.s7[i] = cells[i].speeds[7];
+    soa_cells.s8[i] = cells[i].speeds[8];
+  }
   // Write cells to OpenCL buffer
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(t_speed) * params.nx * params.ny, cells, 0, NULL, NULL);
+    sizeof(soa_speeds) * params.nx * params.ny, soa_cells, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   // Write obstacles to OpenCL buffer
@@ -200,17 +242,16 @@ int main(int argc, char* argv[])
     ocl.queue, ocl.obstacles, CL_TRUE, 0,
     sizeof(cl_int) * params.nx * params.ny, obstacles, 0, NULL, NULL);
   checkError(err, "writing obstacles data", __LINE__);
-  int size = (params.nx*params.ny)/2048;
 
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
   for (int tt = 0; tt < params.maxIters; tt++)
   {
-    accelerate_flow(params, cells, obstacles, ocl);
-    propagate(params, cells, tmp_cells, ocl);
-    collision_rebound(params, cells, tmp_cells, obstacles, ocl);
-    reduce(ocl,params,tt,size);
+    accelerate_flow(params, ocl);
+    propagate(params,  ocl);
+    collision_rebound(params, ocl);
+    reduce(ocl,params,tt);
   }
 
   gettimeofday(&timstr, NULL);
@@ -228,8 +269,20 @@ int main(int argc, char* argv[])
 
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(t_speed) * params.nx*params.ny, cells, 0, NULL, NULL);
+    sizeof(soa_speeds) * params.nx*params.ny, soa_cells, 0, NULL, NULL);
   checkError(err, "reading av_vel from device data", __LINE__);
+
+  for (int i =0; i<params.nx*params.ny;i++){
+    cells[i].speeds[0] = soa_cells.s0[i];
+    cells[i].speeds[1] = soa_cells.s1[i];
+    cells[i].speeds[2] = soa_cells.s2[i];
+    cells[i].speeds[3] = soa_cells.s3[i];
+    cells[i].speeds[4] = soa_cells.s4[i];
+    cells[i].speeds[5] = soa_cells.s5[i];
+    cells[i].speeds[6] = soa_cells.s6[i];
+    cells[i].speeds[7] = soa_cells.s7[i];
+    cells[i].speeds[8] = soa_cells.s8[i];
+  }
 
   /* write final values and free memory */
   printf("==done==\n");
@@ -243,7 +296,7 @@ int main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl)
+int accelerate_flow(const t_param params, t_ocl ocl)
 {
   cl_int err;
 
@@ -274,7 +327,7 @@ int accelerate_flow(const t_param params, t_speed* cells, int* obstacles, t_ocl 
   return EXIT_SUCCESS;
 }
 
-int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl ocl)
+int propagate(const t_param params, t_ocl ocl)
 {
   cl_int err;
 
@@ -303,7 +356,7 @@ int propagate(const t_param params, t_speed* cells, t_speed* tmp_cells, t_ocl oc
   return EXIT_SUCCESS;
 }
 
-int collision_rebound(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obstacles, t_ocl ocl)
+int collision_rebound(const t_param params, t_ocl ocl)
 {
   cl_int err;
   // Set kernel arguments
@@ -388,16 +441,16 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
   return tot_u / (float)tot_cells;
 }
 
-int reduce (t_ocl ocl, const t_param params, int tt, int size){
+int reduce (t_ocl ocl, const t_param params, int tt){
   cl_int err;
   // Set kernel arguments
   err = clSetKernelArg(ocl.reduce, 0, sizeof(cl_mem), &ocl.global_u);
   checkError(err, "setting reduce arg 0", __LINE__);
   err = clSetKernelArg(ocl.reduce, 1, sizeof(cl_mem), &ocl.global_cells);
   checkError(err, "setting reduce arg 1", __LINE__);
-  err = clSetKernelArg(ocl.reduce, 2, sizeof(cl_float)*2048,NULL);
+  err = clSetKernelArg(ocl.reduce, 2, sizeof(cl_float)*params.ny,NULL);
   checkError(err, "setting reduce arg 2", __LINE__);
-  err = clSetKernelArg(ocl.reduce, 3, sizeof(cl_int)*2048, NULL);
+  err = clSetKernelArg(ocl.reduce, 3, sizeof(cl_int)*params.ny, NULL);
   checkError(err, "setting reduce arg 3", __LINE__);
   err = clSetKernelArg(ocl.reduce, 4, sizeof(cl_mem), &ocl.results_reduce_u);
   checkError(err, "setting reduce arg 4", __LINE__);
@@ -406,7 +459,7 @@ int reduce (t_ocl ocl, const t_param params, int tt, int size){
 
   // Enqueue kernel
   size_t global[1] = {params.nx* params.ny};
-  size_t local[1] = {2048};
+  size_t local[1] = {params.ny};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.reduce,
                                1, NULL, global, local, 0, NULL, NULL);
   checkError(err, "enqueueing reduce kernel", __LINE__);
@@ -421,15 +474,15 @@ int reduce (t_ocl ocl, const t_param params, int tt, int size){
   checkError(err, "setting reduce arg 1", __LINE__);
   err = clSetKernelArg(ocl.finalReduce, 2, sizeof(cl_mem), &ocl.av_vels);
   checkError(err, "setting finalReduce arg 2", __LINE__);
-  err = clSetKernelArg(ocl.finalReduce, 3, sizeof(cl_float)*size,NULL);
+  err = clSetKernelArg(ocl.finalReduce, 3, sizeof(cl_float)*params.nx,NULL);
   checkError(err, "setting reduce arg 3", __LINE__);
-  err = clSetKernelArg(ocl.finalReduce, 4, sizeof(cl_int)*size, NULL);
+  err = clSetKernelArg(ocl.finalReduce, 4, sizeof(cl_int)*params.nx, NULL);
   checkError(err, "setting reduce arg 4", __LINE__);
   err = clSetKernelArg(ocl.finalReduce, 5, sizeof(cl_int), &tt);
   checkError(err, "setting reduce arg 5", __LINE__);
 
   // Enqueue kernel
-  global[0] = size;
+  global[0] = params.nx;
 
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.finalReduce,
                                1, NULL, global, global, 0, NULL, NULL);
@@ -662,11 +715,11 @@ int initialise(const char* paramfile, const char* obstaclefile,
   // Allocate OpenCL buffers
   ocl->cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(t_speed) * params->nx * params->ny, NULL, &err);
+    sizeof(soa_speeds) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
   ocl->tmp_cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(t_speed) * params->nx * params->ny, NULL, &err);
+    sizeof(soa_speeds) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating tmp_cells buffer", __LINE__);
   ocl->obstacles = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
@@ -691,12 +744,12 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   ocl->results_reduce_u = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) *((params->nx*params->ny)/2048), NULL, &err);
+    sizeof(cl_float) *(params->nx), NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
   ocl->results_reduce_cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_int)*((params->nx*params->ny)/2048), NULL, &err);
+    sizeof(cl_int)*(params->nx), NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
 
 
