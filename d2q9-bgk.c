@@ -388,7 +388,7 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
   return tot_u / (float)tot_cells;
 }
 
-int reduce (t_ocl ocl, const t_param params, int tt){
+int reduce (t_ocl ocl, const t_param params, int tt, int size){
   cl_int err;
   // Set kernel arguments
   err = clSetKernelArg(ocl.reduce, 0, sizeof(cl_mem), &ocl.global_u);
