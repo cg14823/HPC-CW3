@@ -121,20 +121,18 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
     float u_sq = u_x * u_x + u_y * u_y;
 
     float d_equ[NSPEEDS];
-    float lw1 = w1*local_density;
-    float lw2 = w2*local_density;
     /* zero velocity density: weight w0 */
     d_equ[0] = w0 * local_density * (1.0f - 1.5f * u_sq);
     /* axis speeds: weight w1 */
-    d_equ[1] = lw1 * (1.0f + 3.0f * (u_x + u_x * u_x) - 1.5f * u_y * u_y);
-    d_equ[2] = lw1 * (1.0f + 3.0f * (u_y + u_y * u_y) - 1.5f * u_x * u_x);
-    d_equ[3] = lw1 * (1.0f + 3.0f * (-u_x + u_x * u_x) - 1.5f * u_y * u_y);
-    d_equ[4] = lw1 * (1.0f + 3.0f * (-u_y + u_y * u_y) - 1.5f * u_x *u_x);
+    d_equ[1] = w1 * local_density * (1.0f + 3.0f * (u_x + u_x * u_x) - 1.5f * u_y * u_y);
+    d_equ[2] = w1 * local_density * (1.0f + 3.0f * (u_y + u_y * u_y) - 1.5f * u_x * u_x);
+    d_equ[3] = w1 * local_density * (1.0f + 3.0f * (-u_x + u_x * u_x) - 1.5f * u_y * u_y);
+    d_equ[4] = w1 * local_density * (1.0f + 3.0f * (-u_y + u_y * u_y) - 1.5f * u_x *u_x);
     /* diagonal speeds: weight w2 */
-    d_equ[5] = lw2 * (1.0f + 3.0f * (u_sq + u_x + u_y) + 9.0f * u_x * u_y);
-    d_equ[6] = lw2 * (1.0f + 3.0f * (u_sq - u_x + u_y) - 9.0f * u_x * u_y);
-    d_equ[7] = lw2 * (1.0f + 3.0f * (u_sq - u_x - u_y) + 9.0f * u_x * u_y);
-    d_equ[8] = lw2 * (1.0f + 3.0f * (u_sq + u_x - u_y) - 9.0f * u_x * u_y);
+    d_equ[5] = w2 * local_density * (1.0f + 3.0f * (u_sq + u_x + u_y) + 9.0f * u_x * u_y);
+    d_equ[6] = w2 * local_density * (1.0f + 3.0f * (u_sq - u_x + u_y) - 9.0f * u_x * u_y);
+    d_equ[7] = w2 * local_density * (1.0f + 3.0f * (u_sq - u_x - u_y) + 9.0f * u_x * u_y);
+    d_equ[8] = w2 * local_density * (1.0f + 3.0f * (u_sq + u_x - u_y) - 9.0f * u_x * u_y);
 
     /* relaxation step */
 
