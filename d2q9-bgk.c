@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
   t_speed* tmp_cells = NULL;    /* scratch space */
   int*     obstacles = NULL;    /* grid indicating which cells are blocked */
   float* av_vels   = NULL;     /* a record of the av. velocity computed for each timestep */
-  cl_int err;
+  //cl_int err;
   struct timeval timstr;        /* structure to hold elapsed time */
   struct rusage ru;             /* structure to hold CPU time--system and user */
   double tic, toc;              /* floating point numbers to calculate elapsed wallclock time */
@@ -397,7 +397,7 @@ int main(int argc, char* argv[])
 
 int accelerate_flow(const t_param params, t_ocl ocl)
 {
-  cl_int err;
+  //cl_int err;
 
   // Set kernel arguments
   err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.s1);
@@ -438,7 +438,7 @@ int accelerate_flow(const t_param params, t_ocl ocl)
 
 int propagate(const t_param params, t_ocl ocl)
 {
-  cl_int err;
+  //cl_int err;
 
   // Set kernel arguments
   err = clSetKernelArg(ocl.propagate, 0, sizeof(cl_mem), &ocl.s0);
@@ -499,7 +499,7 @@ int propagate(const t_param params, t_ocl ocl)
 
 int collision_rebound(const t_param params, t_ocl ocl)
 {
-  cl_int err;
+  //cl_int err;
   // Set kernel arguments
   err = clSetKernelArg(ocl.collision_rebound_av_velocity, 0, sizeof(cl_mem), &ocl.s0);
   //checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
@@ -615,7 +615,7 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
 }
 
 int reduce (t_ocl ocl, const t_param params, int tt){
-  cl_int err;
+  //cl_int err;
   // Set kernel arguments
   err = clSetKernelArg(ocl.reduce, 0, sizeof(cl_mem), &ocl.global_u);
   //checkError(err, "setting reduce arg 0", __LINE__);
