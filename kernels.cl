@@ -120,34 +120,22 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
     /* velocity squared */
     float u_sq = u_x * u_x + u_y * u_y;
 
-    float d_equ[NSPEEDS];
     /* zero velocity density: weight w0 */
     d_equ[0] = (w0 * local_density * (1.0f - 1.5f * u_sq) - st0[index]) *omega;
     /* axis speeds: weight w1 */
     float lw1 = w1 * local_density;
     float lw2 = w2 * local_density;
-    d_equ[1] = (lw1 * (1.0f + 3.0f * (u_x + u_x * u_x) - 1.5f * u_y * u_y) - st1[index]) * omega;
-    d_equ[2] = (lw1 * (1.0f + 3.0f * (u_y + u_y * u_y) - 1.5f * u_x * u_x) - st2[index]) * omega;
-    d_equ[3] = (lw1 * (1.0f + 3.0f * (-u_x + u_x * u_x) - 1.5f * u_y * u_y) -st3[index]) * omega;
-    d_equ[4] = (lw1 * (1.0f + 3.0f * (-u_y + u_y * u_y) - 1.5f * u_x *u_x) -st4[index]) * omega;
-    /* diagonal speeds: weight w2 */
-    d_equ[5] = (lw2 * (1.0f + 3.0f * (u_sq + u_x + u_y) + 9.0f * u_x * u_y) -st5[index]) * omega;
-    d_equ[6] = (lw2 * (1.0f + 3.0f * (u_sq - u_x + u_y) - 9.0f * u_x * u_y) -st6[index]) * omega;
-    d_equ[7] = (lw2 * (1.0f + 3.0f * (u_sq - u_x - u_y) + 9.0f * u_x * u_y) -st7[index]) * omega;
-    d_equ[8] = (lw2 * (1.0f + 3.0f * (u_sq + u_x - u_y) - 9.0f * u_x * u_y) -st8[index]) * omega;
 
     /* relaxation step */
-
-
-    s0[index] = st0[index]+ d_equ[0];
-    s1[index] = st1[index]+ d_equ[1];
-    s2[index] = st2[index]+ d_equ[2];
-    s3[index] = st3[index]+ d_equ[3];
-    s4[index] = st4[index]+ d_equ[4];
-    s5[index] = st5[index]+ d_equ[5];
-    s6[index] = st6[index]+ d_equ[6];
-    s7[index] = st7[index]+ d_equ[7];
-    s8[index] = st8[index]+ d_equ[8];
+    s0[index] = st0[index]+ (w0 * local_density * (1.0f - 1.5f * u_sq) - st0[index]) *omega;
+    s1[index] = st1[index]+ (lw1 * (1.0f + 3.0f * (u_x + u_x * u_x) - 1.5f * u_y * u_y) - st1[index]) * omega;
+    s2[index] = st2[index]+ (lw1 * (1.0f + 3.0f * (u_y + u_y * u_y) - 1.5f * u_x * u_x) - st2[index]) * omega;
+    s3[index] = st3[index]+ (lw1 * (1.0f + 3.0f * (-u_x + u_x * u_x) - 1.5f * u_y * u_y) -st3[index]) * omega;
+    s4[index] = st4[index]+ (lw1 * (1.0f + 3.0f * (-u_y + u_y * u_y) - 1.5f * u_x *u_x) -st4[index]) * omega;
+    s5[index] = st5[index]+ (lw2 * (1.0f + 3.0f * (u_sq + u_x + u_y) + 9.0f * u_x * u_y) -st5[index]) * omega;
+    s6[index] = st6[index]+ (lw2 * (1.0f + 3.0f * (u_sq - u_x + u_y) - 9.0f * u_x * u_y) -st6[index]) * omega;
+    s7[index] = st7[index]+ (lw2 * (1.0f + 3.0f * (u_sq - u_x - u_y) + 9.0f * u_x * u_y) -st7[index]) * omega;
+    s8[index] = st8[index]+ (lw2 * (1.0f + 3.0f * (u_sq + u_x - u_y) - 9.0f * u_x * u_y) -st8[index]) * omega;
 
 
     local_density = s0[index]+s1[index]
