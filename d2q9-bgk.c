@@ -400,33 +400,27 @@ int accelerate_flow(const t_param params, t_ocl ocl)
   cl_int err;
 
   // Set kernel arguments
-  err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.s0);
+  err = clSetKernelArg(ocl.accelerate_flow, 0, sizeof(cl_mem), &ocl.s1);
   checkError(err, "setting accelerate_flow arg 0", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 1, sizeof(cl_mem), &ocl.s1);
+  err = clSetKernelArg(ocl.accelerate_flow, 1, sizeof(cl_mem), &ocl.s3);
   checkError(err, "setting accelerate_flow arg 0", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 2, sizeof(cl_mem), &ocl.s2);
+  err = clSetKernelArg(ocl.accelerate_flow, 2, sizeof(cl_mem), &ocl.s5);
   checkError(err, "setting accelerate_flow arg 0", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 3, sizeof(cl_mem), &ocl.s3);
+  err = clSetKernelArg(ocl.accelerate_flow, 3, sizeof(cl_mem), &ocl.s6);
   checkError(err, "setting accelerate_flow arg 0", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 4, sizeof(cl_mem), &ocl.s4);
+  err = clSetKernelArg(ocl.accelerate_flow, 4, sizeof(cl_mem), &ocl.s7);
   checkError(err, "setting accelerate_flow arg 0", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 5, sizeof(cl_mem), &ocl.s5);
+  err = clSetKernelArg(ocl.accelerate_flow, 5, sizeof(cl_mem), &ocl.s8);
   checkError(err, "setting accelerate_flow arg 0", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 6, sizeof(cl_mem), &ocl.s6);
-  checkError(err, "setting accelerate_flow arg 0", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 7, sizeof(cl_mem), &ocl.s7);
-  checkError(err, "setting accelerate_flow arg 0", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 8, sizeof(cl_mem), &ocl.s8);
-  checkError(err, "setting accelerate_flow arg 0", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 9, sizeof(cl_mem), &ocl.obstacles);
+  err = clSetKernelArg(ocl.accelerate_flow, 6, sizeof(cl_mem), &ocl.obstacles);
   checkError(err, "setting accelerate_flow arg 1", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 10, sizeof(cl_int), &params.nx);
+  err = clSetKernelArg(ocl.accelerate_flow, 7, sizeof(cl_int), &params.nx);
   checkError(err, "setting accelerate_flow arg 2", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 11, sizeof(cl_int), &params.ny);
+  err = clSetKernelArg(ocl.accelerate_flow, 8, sizeof(cl_int), &params.ny);
   checkError(err, "setting accelerate_flow arg 3", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 12, sizeof(cl_float), &params.density);
+  err = clSetKernelArg(ocl.accelerate_flow, 9, sizeof(cl_float), &params.density);
   checkError(err, "setting accelerate_flow arg 4", __LINE__);
-  err = clSetKernelArg(ocl.accelerate_flow, 13, sizeof(cl_float), &params.accel);
+  err = clSetKernelArg(ocl.accelerate_flow, 10, sizeof(cl_float), &params.accel);
   checkError(err, "setting accelerate_flow arg 5", __LINE__);
 
   // Enqueue kernel

@@ -3,9 +3,7 @@
 #define NSPEEDS         9
 
 
-kernel void accelerate_flow(global float* s0, global float* s1, global float* s2,
-    global float* s3, global float* s4,
-    global float* s5, global float* s6, global float* s7, global float* s8,
+kernel void accelerate_flow(global float* s1, global float* s3, global float* s5, global float* s6, global float* s7, global float* s8,
                             global int* obstacles,
                             int nx, int ny,
                             float density, float accel)
