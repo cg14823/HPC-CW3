@@ -299,7 +299,6 @@ int main(int argc, char* argv[])
 
   for (int tt = 0; tt < params.maxIters; tt++)
   {
-    printf("IT %d\n")
     accelerate_flow(params, ocl);
     propagate(params,  ocl);
     collision_rebound(params, ocl);
@@ -920,7 +919,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
     ocl->context, CL_MEM_READ_WRITE,
     sizeof(cl_float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
-  ocl->st08 = clCreateBuffer(
+  ocl->st8 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
     sizeof(cl_float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
@@ -957,7 +956,7 @@ int initialise(const char* paramfile, const char* obstaclefile,
     ocl->context, CL_MEM_READ_WRITE,
     sizeof(cl_float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
-  ocl->s08 = clCreateBuffer(
+  ocl->s8 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
     sizeof(cl_float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
@@ -1015,8 +1014,6 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
   free(*av_vels_ptr);
   *av_vels_ptr = NULL;
 
-  clReleaseMemObject(ocl.cells);
-  clReleaseMemObject(ocl.tmp_cells);
   clReleaseMemObject(ocl.obstacles);
   clReleaseMemObject(ocl.av_vels);
   clReleaseMemObject(ocl.results_reduce_u);
