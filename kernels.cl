@@ -2,20 +2,10 @@
 
 #define NSPEEDS         9
 
-typedef struct
-{
-  float* s0;
-  float* s1;
-  float* s2;
-  float* s3;
-  float* s4;
-  float* s5;
-  float* s6;
-  float* s7;
-  float* s8;
-}soa_speeds;
 
-kernel void accelerate_flow(global soa_speeds* cells,
+kernel void accelerate_flow(global float* s0, global float* s1, global float* s2,
+    global float* s3, global float* s4,
+    global float* s5, global float* s6, global float* s7, global float* s8,
                             global int* obstacles,
                             int nx, int ny,
                             float density, float accel)
@@ -33,23 +23,27 @@ kernel void accelerate_flow(global soa_speeds* cells,
   /* if the cell is not occupied and
   ** we don't send a negative density */
   if (!obstacles[ii * nx + jj]
-      && (cells->s3[ii * nx + jj] - w1) > 0.0f
-      && (cells->s6[ii * nx + jj] - w2) > 0.0f
-      && (cells->s7[ii * nx + jj] - w2) > 0.0f)
+      && (s3[ii * nx + jj] - w1) > 0.0f
+      && (s6[ii * nx + jj] - w2) > 0.0f
+      && (s7[ii * nx + jj] - w2) > 0.0f)
   {
     /* increase 'east-side' densities */
-    cells->s1[ii * nx + jj] += w1;
-    cells->s5[ii * nx + jj] += w2;
-    cells->s8[ii * nx + jj] += w2;
+    s1[ii * nx + jj] += w1;
+    s5[ii * nx + jj] += w2;
+    s8[ii * nx + jj] += w2;
     /* decrease 'west-side' densities */
-    cells->s3[ii * nx + jj] -= w1;
-    cells->s6[ii * nx + jj] -= w2;
-    cells->s7[ii * nx + jj] -= w2;
+    s3[ii * nx + jj] -= w1;
+    s6[ii * nx + jj] -= w2;
+    s7[ii * nx + jj] -= w2;
   }
 }
 
-kernel void propagate(global soa_speeds* cells,
-                      global soa_speeds* tmp_cells,
+kernel void propagate(global float* s0, global float* s1, global float* s2,
+    global float* s3, global float* s4,
+    global float* s5, global float* s6, global float* s7, global float* s8,
+    global float* st0, global float* st1, global float* st2,
+    global float* st3, global float* st4,
+    global float* st5, global float* st6, global float* st7, global float* st8,
                       global int* obstacles,
                       int nx, int ny)
 {
@@ -66,18 +60,23 @@ kernel void propagate(global soa_speeds* cells,
   /* propagate densities to neighbouring cells, following
   ** appropriate directions of travel and writing into
   ** scratch space grid */
-  tmp_cells->s0[ii * nx + jj] = cells->s0[ii * nx + jj]; /* central cell, no movement */
-	tmp_cells->s1[ii * nx + jj] = cells->s1[ii * nx + x_w]; /* east */
-	tmp_cells->s2[ii * nx + jj] = cells->s2[y_s * nx + jj]; /* north */
-	tmp_cells->s3[ii * nx + jj] = cells->s3[ii * nx + x_e]; /* west */
-	tmp_cells->s4[ii * nx + jj] = cells->s4[y_n * nx + jj]; /* south */
-	tmp_cells->s5[ii * nx + jj] = cells->s5[y_s * nx + x_w]; /* north-east */
-	tmp_cells->s6[ii * nx + jj] = cells->s6[y_s * nx + x_e]; /* north-west */
-	tmp_cells->s7[ii * nx + jj] = cells->s7[y_n * nx + x_e]; /* south-west */
-	tmp_cells->s8[ii * nx + jj] = cells->s8[y_n * nx + x_w]; /* south-east */
+  st0[ii * nx + jj] = s0[ii * nx + jj]; /* central cell, no movement */
+	st1[ii * nx + jj] = s1[ii * nx + x_w]; /* east */
+	st2[ii * nx + jj] = s2[y_s * nx + jj]; /* north */
+	st3[ii * nx + jj] = s3[ii * nx + x_e]; /* west */
+	st4[ii * nx + jj] = s4[y_n * nx + jj]; /* south */
+	st5[ii * nx + jj] = s5[y_s * nx + x_w]; /* north-east */
+	st6[ii * nx + jj] = s6[y_s * nx + x_e]; /* north-west */
+	st7[ii * nx + jj] = s7[y_n * nx + x_e]; /* south-west */
+	st8[ii * nx + jj] = s8[y_n * nx + x_w]; /* south-east */
 }
 
-kernel void collision_rebound_av_velocity(global soa_speeds* cells, global soa_speeds* tmp_cells,
+kernel void collision_rebound_av_velocity(global float* s0, global float* s1, global float* s2,
+    global float* s3, global float* s4,
+    global float* s5, global float* s6, global float* s7, global float* s8,
+    global float* st0, global float* st1, global float* st2,
+    global float* st3, global float* st4,
+    global float* st5, global float* st6, global float* st7, global float* st8,
                               global int* obstacles,int nx, int ny, float omega,
                               global float* global_u,
                               global int* global_cells)
@@ -97,27 +96,27 @@ kernel void collision_rebound_av_velocity(global soa_speeds* cells, global soa_s
   if (!obstacles[index])
   {
     /* compute local density total */
-    float local_density = tmp_cells->s0[index]+tmp_cells->s1[index]
-                    +tmp_cells->s2[index]+tmp_cells->s3[index]
-                    +tmp_cells->s4[index]+tmp_cells->s5[index]
-                    +tmp_cells->s6[index]+tmp_cells->s7[index]
-                    +tmp_cells->s8[index];
+    float local_density = st0[index]+st1[index]
+                    +st2[index]+st3[index]
+                    +st4[index]+st5[index]
+                    +st6[index]+st7[index]
+                    +st8[index];
 
     /* compute x velocity component */
-    float u_x = (tmp_cells->s1[index]
-                  + tmp_cells->s5[index]
-                  + tmp_cells->s8[index]
-                  - (tmp_cells->s3[index]
-                     + tmp_cells->s6[index]
-                     + tmp_cells->s7[index]))
+    float u_x = (st1[index]
+                  + st5[index]
+                  + st8[index]
+                  - (st3[index]
+                     + st6[index]
+                     + st7[index]))
                  / local_density;
     /* compute y velocity component */
-    float u_y = (tmp_cells->s2[index]
-                  + tmp_cells->s5[index]
-                  + tmp_cells->s6[index]
-                  - (tmp_cells->s4[index]
-                     + tmp_cells->s7[index]
-                     + tmp_cells->s8[index]))
+    float u_y = (st2[index]
+                  + st5[index]
+                  + st6[index]
+                  - (st4[index]
+                     + st7[index]
+                     + st8[index]))
                  / local_density;
 
     /* velocity squared */
@@ -140,50 +139,50 @@ kernel void collision_rebound_av_velocity(global soa_speeds* cells, global soa_s
     /* relaxation step */
 
 
-    cells->s0[index] = tmp_cells->s0[index]+ omega* (d_equ[0] - tmp_cells->s0[index]);
-    cells->s1[index] = tmp_cells->s1[index]+ omega* (d_equ[1] - tmp_cells->s1[index]);
-    cells->s2[index] = tmp_cells->s2[index]+ omega* (d_equ[2] - tmp_cells->s2[index]);
-    cells->s3[index] = tmp_cells->s3[index]+ omega* (d_equ[3] - tmp_cells->s3[index]);
-    cells->s4[index] = tmp_cells->s4[index]+ omega* (d_equ[4] - tmp_cells->s4[index]);
-    cells->s5[index] = tmp_cells->s5[index]+ omega* (d_equ[5] - tmp_cells->s5[index]);
-    cells->s6[index] = tmp_cells->s6[index]+ omega* (d_equ[6] - tmp_cells->s6[index]);
-    cells->s7[index] = tmp_cells->s7[index]+ omega* (d_equ[7] - tmp_cells->s7[index]);
-    cells->s8[index] = tmp_cells->s8[index]+ omega* (d_equ[8] - tmp_cells->s8[index]);
+    s0[index] = st0[index]+ omega* (d_equ[0] - st0[index]);
+    s1[index] = st1[index]+ omega* (d_equ[1] - st1[index]);
+    s2[index] = st2[index]+ omega* (d_equ[2] - st2[index]);
+    s3[index] = st3[index]+ omega* (d_equ[3] - st3[index]);
+    s4[index] = st4[index]+ omega* (d_equ[4] - st4[index]);
+    s5[index] = st5[index]+ omega* (d_equ[5] - st5[index]);
+    s6[index] = st6[index]+ omega* (d_equ[6] - st6[index]);
+    s7[index] = st7[index]+ omega* (d_equ[7] - st7[index]);
+    s8[index] = st8[index]+ omega* (d_equ[8] - st8[index]);
 
 
-    local_density = cells->s0[index]+cells->s1[index]
-                    +cells->s2[index]+cells->s3[index]
-                    +cells->s4[index]+cells->s5[index]
-                    +cells->s6[index]+cells->s7[index]
-                    +cells->s8[index];
+    local_density = s0[index]+s1[index]
+                    +s2[index]+s3[index]
+                    +s4[index]+s5[index]
+                    +s6[index]+s7[index]
+                    +s8[index];
 
-    u_x = (cells->s1[index]
-                  + cells->s5[index]
-                  + cells->s8[index]
-                  - (cells->s3[index]
-                     + cells->s6[index]
-                     + cells->s7[index]));
+    u_x = (s1[index]
+                  + s5[index]
+                  + s8[index]
+                  - (s3[index]
+                     + s6[index]
+                     + s7[index]));
     /* compute y velocity component */
-    u_y = (cells->s2[index]
-                  + cells->s5[index]
-                  + cells->s6[index]
-                  - (cells->s4[index]
-                     + cells->s7[index]
-                     + cells->s8[index]));
+    u_y = (s2[index]
+                  + s5[index]
+                  + s6[index]
+                  - (s4[index]
+                     + s7[index]
+                     + s8[index]));
 
     global_u[index] =sqrt((u_x * u_x) + (u_y * u_y))/local_density;
     global_cells[index] = 1;
 
   }
   else{
-    cells->s1[index] = tmp_cells->s3[index];
-    cells->s2[index] = tmp_cells->s4[index];
-    cells->s3[index] = tmp_cells->s1[index];
-    cells->s4[index] = tmp_cells->s2[index];
-    cells->s5[index] = tmp_cells->s7[index];
-    cells->s6[index] = tmp_cells->s8[index];
-    cells->s7[index] = tmp_cells->s5[index];
-    cells->s8[index] = tmp_cells->s6[index];
+    s1[index] = st3[index];
+    s2[index] = st4[index];
+    s3[index] = st1[index];
+    s4[index] = st2[index];
+    s5[index] = st7[index];
+    s6[index] = st8[index];
+    s7[index] = st5[index];
+    s8[index] = st6[index];
 
     global_u[index] =0.0f;
     global_cells[index] = 0;
