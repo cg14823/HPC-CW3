@@ -89,7 +89,7 @@ typedef struct
 
   cl_program program;
   cl_kernel  accelerate_flow;
-  cl_kernel  collision_rebound_av_velocity;
+  cl_kernel  propagate_collision_rebound_av_velocity;
   cl_kernel  reduce;
   cl_kernel finalReduce;
 
