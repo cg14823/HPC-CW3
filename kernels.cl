@@ -120,8 +120,6 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
     /* velocity squared */
     float u_sq = u_x * u_x + u_y * u_y;
 
-    /* zero velocity density: weight w0 */
-    d_equ[0] = (w0 * local_density * (1.0f - 1.5f * u_sq) - st0[index]) *omega;
     /* axis speeds: weight w1 */
     float lw1 = w1 * local_density;
     float lw2 = w2 * local_density;
