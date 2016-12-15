@@ -116,9 +116,6 @@ typedef struct
   cl_mem st7;
   cl_mem st8;
 
-  cl_mem global_u;
-  cl_mem global_cells;
-
   cl_mem results_reduce_u;
   cl_mem results_reduce_cells;
 } t_ocl;
@@ -540,17 +537,13 @@ int collision_rebound(const t_param params, t_ocl ocl)
   checkError(err, "setting collision_rebound_av_velocity arg 2", __LINE__);
   err = clSetKernelArg(ocl.collision_rebound_av_velocity, 19, sizeof(cl_float), &params.omega);
   checkError(err, "setting collision_rebound_av_velocity arg 4", __LINE__);
-  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 20, sizeof(cl_mem), &ocl.global_u);
-  checkError(err, "setting collision_rebound_av_velocity arg 6", __LINE__);
-  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 21, sizeof(cl_mem), &ocl.global_cells);
-  checkError(err, "setting collision_rebound_av_velocity arg 7", __LINE__);
-  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 22, sizeof(cl_float)*params.ny,NULL);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 20, sizeof(cl_float)*params.ny,NULL);
   checkError(err, "setting collision_rebound_av_velocity arg 2", __LINE__);
-  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 23, sizeof(cl_int)*params.ny, NULL);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 21, sizeof(cl_int)*params.ny, NULL);
   checkError(err, "setting collision_rebound_av_velocity arg 3", __LINE__);
-  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 24, sizeof(cl_mem), &ocl.results_reduce_u);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 22, sizeof(cl_mem), &ocl.results_reduce_u);
   checkError(err, "setting collision_rebound_av_velocity arg 4", __LINE__);
-  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 25, sizeof(cl_mem), &ocl.results_reduce_cells);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 23, sizeof(cl_mem), &ocl.results_reduce_cells);
   checkError(err, "setting reduce arg 5", __LINE__);
 
   // Enqueue kernel
@@ -947,15 +940,6 @@ int initialise(const char* paramfile, const char* obstaclefile,
     sizeof(cl_int) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
 
-  ocl->global_u = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating obstacles buffer", __LINE__);
-  ocl->global_cells = clCreateBuffer(
-    ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_int) * params->nx * params->ny, NULL, &err);
-  checkError(err, "creating obstacles buffer", __LINE__);
-
   // Allocate openCl buffer for reductions and av_vels_ptr
   ocl->av_vels = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
@@ -999,8 +983,6 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
   clReleaseMemObject(ocl.av_vels);
   clReleaseMemObject(ocl.results_reduce_u);
   clReleaseMemObject(ocl.results_reduce_cells);
-  clReleaseMemObject(ocl.global_u);
-  clReleaseMemObject(ocl.global_cells);
   clReleaseMemObject(ocl.s0);
   clReleaseMemObject(ocl.s1);
   clReleaseMemObject(ocl.s2);

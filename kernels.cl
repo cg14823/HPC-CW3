@@ -76,7 +76,6 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
   global float* st3, global float* st4,
   global float* st5, global float* st6, global float* st7, global float* st8,
   global int* obstacles, float omega,
-  global float* global_u, global int* global_cells,
   local float* local_sum_u,local int* local_sum_cells,
   global float* result_u,
   global int* result_cells)
@@ -86,6 +85,7 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
   const float w2 = 1.0f / 36.0f; /* weighting factor */
 
   int index = get_global_id(0);
+  int local_index = get_local_id(0);
 
   /* don't consider occupied cells */
   if (!obstacles[index])
@@ -153,8 +153,8 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
                      + s7[index]
                      + s8[index]));
 
-    global_u[index] =sqrt((u_x * u_x) + (u_y * u_y))/local_density;
-    global_cells[index] = 1;
+    local_sum_u[local_index] =sqrt((u_x * u_x) + (u_y * u_y))/local_density;
+    local_sum_cells[local_index] = 1;
 
   }
   else{
@@ -167,16 +167,9 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
     s7[index] = st5[index];
     s8[index] = st6[index];
 
-    global_u[index] =0.0f;
-    global_cells[index] = 0;
+    local_sum_u[local_index] =0.0f;
+    local_sum_cells[local_index] = 0;
   }
-  barrier(CLK_GLOBAL_MEM_FENCE);
-
-  int local_index = get_local_id(0);
-  // Load data into local memory
-
-  local_sum_u[local_index] = global_u[index];
-  local_sum_cells[local_index] = global_cells[index];
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
