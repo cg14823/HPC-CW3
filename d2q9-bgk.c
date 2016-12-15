@@ -243,50 +243,51 @@ int main(int argc, char* argv[])
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
+
   // Write cells to OpenCL buffer
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s0, CL_TRUE, 0,
-    sizeof(float) * params.nx * params.ny, &s0, 0, NULL, NULL);
+    sizeof(cl_float) * params.nx * params.ny, &s0, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s1, CL_TRUE, 0,
-    sizeof(float) * params.nx * params.ny, &s1, 0, NULL, NULL);
+    sizeof(cl_float) * params.nx * params.ny, &s1, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s2, CL_TRUE, 0,
-    sizeof(float) * params.nx * params.ny, &s2, 0, NULL, NULL);
+    sizeof(cl_float) * params.nx * params.ny, &s2, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s3, CL_TRUE, 0,
-    sizeof(float) * params.nx * params.ny, &s3, 0, NULL, NULL);
+    sizeof(cl_float) * params.nx * params.ny, &s3, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s4, CL_TRUE, 0,
-    sizeof(float) * params.nx * params.ny, &s4, 0, NULL, NULL);
+    sizeof(cl_float) * params.nx * params.ny, &s4, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s5, CL_TRUE, 0,
-    sizeof(float) * params.nx * params.ny, &s5, 0, NULL, NULL);
+    sizeof(cl_float) * params.nx * params.ny, &s5, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s6, CL_TRUE, 0,
-    sizeof(float) * params.nx * params.ny, &s6, 0, NULL, NULL);
+    sizeof(cl_float) * params.nx * params.ny, &s6, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s7, CL_TRUE, 0,
-    sizeof(float) * params.nx * params.ny, &s7, 0, NULL, NULL);
+    sizeof(cl_float) * params.nx * params.ny, &s7, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s8, CL_TRUE, 0,
-    sizeof(float) * params.nx * params.ny, &s8, 0, NULL, NULL);
+    sizeof(cl_float) * params.nx * params.ny, &s8, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
 
@@ -299,8 +300,11 @@ int main(int argc, char* argv[])
 
   for (int tt = 0; tt < params.maxIters; tt++)
   {
+    printf("preACC\n");
     accelerate_flow(params, ocl);
+    printf("prePo\n");
     propagate(params,  ocl);
+    printf("preCol\n");
     collision_rebound(params, ocl);
     reduce(ocl,params,tt);
   }
