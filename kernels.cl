@@ -76,7 +76,7 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
   global float* st3, global float* st4,
   global float* st5, global float* st6, global float* st7, global float* st8,
   global int* obstacles, float omega,
-  global float* global_u,global int* global_cells,
+  global float* global_u, global int* global_cells,
   local float* local_sum_u,local int* local_sum_cells,
   global float* result_u,
   global int* result_cells)
@@ -86,11 +86,6 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
   const float w2 = 1.0f / 36.0f; /* weighting factor */
 
   int index = get_global_id(0);
-
-  /* loop over the cells in the grid
-  ** NB the collision step is called after
-  ** the propagate step and so values of interest
-  ** are in the scratch-space grid */
 
   /* don't consider occupied cells */
   if (!obstacles[index])
@@ -181,7 +176,7 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
   // Load data into local memory
 
   local_sum_u[local_index] = global_u[index];
-  local_sum_cells[local_index] = global_tot_cells[index];
+  local_sum_cells[local_index] = global_cells[index];
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
