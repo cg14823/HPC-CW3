@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
   double tic, toc;              /* floating point numbers to calculate elapsed wallclock time */
   double usrtim;                /* floating point number to record elapsed user CPU time */
   double systim;                /* floating point number to record elapsed system CPU time */
-  soa_speeds *soa_cells = NULL;
+  soa_speeds soa_cells;
 
   /* parse the command line */
   if (argc != 3)
@@ -200,32 +200,32 @@ int main(int argc, char* argv[])
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl);
   /* iterate for maxIters timesteps */
-  soa_cells->s0 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_cells->s1 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_cells->s2 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_cells->s3 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_cells->s4 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_cells->s5 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_cells->s6 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_cells->s7 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  soa_cells->s8 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s0 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s1 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s2 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s3 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s4 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s5 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s6 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s7 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
+  soa_cells.s8 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
 
 
   for (int i =0; i<params.nx*params.ny;i++){
-    soa_cells->s0[i] = cells[i].speeds[0];
-    soa_cells->s1[i] = cells[i].speeds[1];
-    soa_cells->s2[i] = cells[i].speeds[2];
-    soa_cells->s3[i] = cells[i].speeds[3];
-    soa_cells->s4[i] = cells[i].speeds[4];
-    soa_cells->s5[i] = cells[i].speeds[5];
-    soa_cells->s6[i] = cells[i].speeds[6];
-    soa_cells->s7[i] = cells[i].speeds[7];
-    soa_cells->s8[i] = cells[i].speeds[8];
+    soa_cells.s0[i] = cells[i].speeds[0];
+    soa_cells.s1[i] = cells[i].speeds[1];
+    soa_cells.s2[i] = cells[i].speeds[2];
+    soa_cells.s3[i] = cells[i].speeds[3];
+    soa_cells.s4[i] = cells[i].speeds[4];
+    soa_cells.s5[i] = cells[i].speeds[5];
+    soa_cells.s6[i] = cells[i].speeds[6];
+    soa_cells.s7[i] = cells[i].speeds[7];
+    soa_cells.s8[i] = cells[i].speeds[8];
   }
   // Write cells to OpenCL buffer
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(soa_speeds) * params.nx * params.ny, soa_cells, 0, NULL, NULL);
+    sizeof(soa_speeds) * params.nx * params.ny, &soa_cells, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   // Write obstacles to OpenCL buffer
@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
 
   for (int tt = 0; tt < params.maxIters; tt++)
   {
-    printf("IT %d\n",tt);
+    printf("IT %d\n")
     accelerate_flow(params, ocl);
     propagate(params,  ocl);
     collision_rebound(params, ocl);
@@ -261,19 +261,19 @@ int main(int argc, char* argv[])
 
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.cells, CL_TRUE, 0,
-    sizeof(soa_speeds) * params.nx*params.ny, soa_cells, 0, NULL, NULL);
+    sizeof(soa_speeds) * params.nx*params.ny, &soa_cells, 0, NULL, NULL);
   checkError(err, "reading av_vel from device data", __LINE__);
 
   for (int i =0; i<params.nx*params.ny;i++){
-    cells[i].speeds[0] = soa_cells->s0[i];
-    cells[i].speeds[1] = soa_cells->s1[i];
-    cells[i].speeds[2] = soa_cells->s2[i];
-    cells[i].speeds[3] = soa_cells->s3[i];
-    cells[i].speeds[4] = soa_cells->s4[i];
-    cells[i].speeds[5] = soa_cells->s5[i];
-    cells[i].speeds[6] = soa_cells->s6[i];
-    cells[i].speeds[7] = soa_cells->s7[i];
-    cells[i].speeds[8] = soa_cells->s8[i];
+    cells[i].speeds[0] = soa_cells.s0[i];
+    cells[i].speeds[1] = soa_cells.s1[i];
+    cells[i].speeds[2] = soa_cells.s2[i];
+    cells[i].speeds[3] = soa_cells.s3[i];
+    cells[i].speeds[4] = soa_cells.s4[i];
+    cells[i].speeds[5] = soa_cells.s5[i];
+    cells[i].speeds[6] = soa_cells.s6[i];
+    cells[i].speeds[7] = soa_cells.s7[i];
+    cells[i].speeds[8] = soa_cells.s8[i];
   }
 
   /* write final values and free memory */
@@ -707,11 +707,11 @@ int initialise(const char* paramfile, const char* obstaclefile,
   // Allocate OpenCL buffers
   ocl->cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(float) *9 * params->nx * params->ny, NULL, &err);
+    sizeof(soa_speeds) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating cells buffer", __LINE__);
   ocl->tmp_cells = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(float) *9 * params->nx * params->ny, NULL, &err);
+    sizeof(soa_speeds) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating tmp_cells buffer", __LINE__);
   ocl->obstacles = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
