@@ -179,7 +179,6 @@ cl_device_id selectOpenCLDevice();
 int main(int argc, char* argv[])
 {
 
-  printf("0\n");
   char*    paramfile = NULL;    /* name of the input parameter file */
   char*    obstaclefile = NULL; /* name of a the input obstacle file */
   t_param  params;              /* struct to hold parameter values */
@@ -205,7 +204,7 @@ int main(int argc, char* argv[])
   float* s7;
   float* s8;
 
-  printf("1\n");
+
   /* parse the command line */
   if (argc != 3)
   {
@@ -217,11 +216,11 @@ int main(int argc, char* argv[])
     obstaclefile = argv[2];
   }
 
-  printf("2\n");
+
   /* initialise our data structures and load values from file */
   initialise(paramfile, obstaclefile, &params, &cells, &tmp_cells, &obstacles, &av_vels, &ocl);
   /* iterate for maxIters timesteps */
-  printf("3\n");
+
   s0 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
   s1 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
   s2 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
@@ -231,7 +230,6 @@ int main(int argc, char* argv[])
   s6 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
   s7 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
   s8 = (float*)malloc(sizeof(float)* (params.ny * params.nx));
-  printf("4\n");
 
 
   for (int i =0; i<params.nx*params.ny;i++){
@@ -245,12 +243,11 @@ int main(int argc, char* argv[])
     s7[i] = cells[i].speeds[7];
     s8[i] = cells[i].speeds[8];
   }
-  printf("5\n");
+
 
   gettimeofday(&timstr, NULL);
   tic = timstr.tv_sec + (timstr.tv_usec / 1000000.0);
 
-  printf("6\n");
 
 
   // Write cells to OpenCL buffer
@@ -258,7 +255,6 @@ int main(int argc, char* argv[])
     ocl.queue, ocl.s0, CL_TRUE, 0,
     sizeof(cl_float) * params.nx * params.ny, s0, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
-  printf("7\n");
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s1, CL_TRUE, 0,
     sizeof(cl_float) * params.nx * params.ny, s1, 0, NULL, NULL);
@@ -309,11 +305,8 @@ int main(int argc, char* argv[])
 
   for (int tt = 0; tt < params.maxIters; tt++)
   {
-    printf("preACC\n");
     accelerate_flow(params, ocl);
-    printf("prePo\n");
     propagate(params,  ocl);
-    printf("preCol\n");
     collision_rebound(params, ocl);
     reduce(ocl,params,tt);
   }
