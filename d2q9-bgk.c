@@ -619,7 +619,8 @@ float av_velocity(const t_param params, t_speed* cells, int* obstacles, t_ocl oc
 }
 
 int reduce (t_ocl ocl, const t_param params, int tt){
-  // Wait for kernel to finish
+
+  cl_int err;
   err = clFinish(ocl.queue);
   checkError(err, "waiting for reduce kernel", __LINE__);
  //------------SERIAL REDUCE-----------//
@@ -637,7 +638,7 @@ int reduce (t_ocl ocl, const t_param params, int tt){
   checkError(err, "setting reduce arg 5", __LINE__);
 
   // Enqueue kernel
-  global[0] = params.nx;
+  size_t global[1] = {params.nx};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.finalReduce,
                                1, NULL, global, global, 0, NULL, NULL);
   checkError(err, "enqueueing finalReduce kernel", __LINE__);
