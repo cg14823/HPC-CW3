@@ -359,7 +359,7 @@ int main(int argc, char* argv[])
 
   err = clEnqueueReadBuffer(
     ocl.queue, ocl.s8, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, &s8, 0, NULL, NULL);
+    sizeof(cl_float) * params.nx * params.ny, s8, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   gettimeofday(&timstr, NULL);
