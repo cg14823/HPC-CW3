@@ -134,7 +134,7 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
     s5[index] = st5[index] *val+ lw2 * (1.0f + 3.0f * (u_sq + u_x + u_y) + 9.0f * u_x * u_y) * omega;
     s6[index] = st6[index] *val+ lw2 * (1.0f + 3.0f * (u_sq - u_x + u_y) - 9.0f * u_x * u_y) * omega;
     s7[index] = st7[index] *val+ lw2 * (1.0f + 3.0f * (u_sq - u_x - u_y) + 9.0f * u_x * u_y) * omega;
-    s8[index] = st8[index] *va)+ lw2 * (1.0f + 3.0f * (u_sq + u_x - u_y) - 9.0f * u_x * u_y) * omega;
+    s8[index] = st8[index] *val+ lw2 * (1.0f + 3.0f * (u_sq + u_x - u_y) - 9.0f * u_x * u_y) * omega;
 
 
     local_density = s0[index]+s1[index]
