@@ -50,7 +50,7 @@ kernel void propagate_collision_rebound_av_velocity(global float* s0, global flo
   const float w1 = 1.0f / 9.0f;  /* weighting factor */
   const float w2 = 1.0f / 36.0f; /* weighting factor */
 
-  int ii = get_global_id(0);
+  int ii = get_global_id(1);
   int jj = get_global_id(0);
 
   /* loop over the cells in the grid
