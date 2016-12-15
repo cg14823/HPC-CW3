@@ -89,7 +89,8 @@ typedef struct
 
   cl_program program;
   cl_kernel  accelerate_flow;
-  cl_kernel  propagate_collision_rebound_av_velocity;
+  cl_kernel  propagate;
+  cl_kernel  collision_rebound_av_velocity;
   cl_kernel  reduce;
   cl_kernel finalReduce;
 
@@ -305,6 +306,7 @@ int main(int argc, char* argv[])
   for (int tt = 0; tt < params.maxIters; tt++)
   {
     accelerate_flow(params, ocl);
+    propagate(params,  ocl);
     collision_rebound(params, ocl);
     reduce(ocl,params,tt);
   }
@@ -436,6 +438,62 @@ int accelerate_flow(const t_param params, t_ocl ocl)
 
 int propagate(const t_param params, t_ocl ocl)
 {
+  cl_int err;
+
+  // Set kernel arguments
+  err = clSetKernelArg(ocl.propagate, 0, sizeof(cl_mem), &ocl.s0);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 1, sizeof(cl_mem), &ocl.s1);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 2, sizeof(cl_mem), &ocl.s2);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 3, sizeof(cl_mem), &ocl.s3);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 4, sizeof(cl_mem), &ocl.s4);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 5, sizeof(cl_mem), &ocl.s5);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 6, sizeof(cl_mem), &ocl.s6);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 7, sizeof(cl_mem), &ocl.s7);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 8, sizeof(cl_mem), &ocl.s8);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 9, sizeof(cl_mem), &ocl.st0);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 10, sizeof(cl_mem), &ocl.st1);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 11, sizeof(cl_mem), &ocl.st2);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 12, sizeof(cl_mem), &ocl.st3);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 13, sizeof(cl_mem), &ocl.st4);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 14, sizeof(cl_mem), &ocl.st5);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 15, sizeof(cl_mem), &ocl.st6);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 16, sizeof(cl_mem), &ocl.st7);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 17, sizeof(cl_mem), &ocl.st8);
+  checkError(err, "setting propagate arg 0", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 18, sizeof(cl_mem), &ocl.obstacles);
+  checkError(err, "setting propagate arg 2", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 19, sizeof(cl_int), &params.nx);
+  checkError(err, "setting propagate arg 3", __LINE__);
+  err = clSetKernelArg(ocl.propagate, 20, sizeof(cl_int), &params.ny);
+  checkError(err, "setting propagate arg 4", __LINE__);
+
+  // Enqueue kernel
+  size_t global[2] = {params.nx, params.ny};
+  err = clEnqueueNDRangeKernel(ocl.queue, ocl.propagate,
+                               2, NULL, global, NULL, 0, NULL, NULL);
+  checkError(err, "enqueueing propagate kernel", __LINE__);
+
+  // Wait for kernel to finish
+  err = clFinish(ocl.queue);
+  checkError(err, "waiting for propagate kernel", __LINE__);
+
   return EXIT_SUCCESS;
 }
 
@@ -443,64 +501,64 @@ int collision_rebound(const t_param params, t_ocl ocl)
 {
   cl_int err;
   // Set kernel arguments
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 0, sizeof(cl_mem), &ocl.s0);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 1, sizeof(cl_mem), &ocl.s1);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 2, sizeof(cl_mem), &ocl.s2);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 3, sizeof(cl_mem), &ocl.s3);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 4, sizeof(cl_mem), &ocl.s4);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 5, sizeof(cl_mem), &ocl.s5);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 6, sizeof(cl_mem), &ocl.s6);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 7, sizeof(cl_mem), &ocl.s7);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 8, sizeof(cl_mem), &ocl.s8);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 9, sizeof(cl_mem), &ocl.st0);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 10, sizeof(cl_mem), &ocl.st1);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 11, sizeof(cl_mem), &ocl.st2);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 12, sizeof(cl_mem), &ocl.st3);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 13, sizeof(cl_mem), &ocl.st4);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 14, sizeof(cl_mem), &ocl.st5);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 15, sizeof(cl_mem), &ocl.st6);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 16, sizeof(cl_mem), &ocl.st7);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 17, sizeof(cl_mem), &ocl.st8);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 0", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 18, sizeof(cl_mem), &ocl.obstacles);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 2", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 19, sizeof(cl_int), &params.nx);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 3", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 20, sizeof(cl_int), &params.ny);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 4", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 21, sizeof(cl_float), &params.omega);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 4", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 22, sizeof(cl_mem), &ocl.global_u);
-  checkError(err, "setting propagate_collision_rebound_av_velocity arg 6", __LINE__);
-  err = clSetKernelArg(ocl.propagate_collision_rebound_av_velocity, 23, sizeof(cl_mem), &ocl.global_cells);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 0, sizeof(cl_mem), &ocl.s0);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 1, sizeof(cl_mem), &ocl.s1);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 2, sizeof(cl_mem), &ocl.s2);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 3, sizeof(cl_mem), &ocl.s3);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 4, sizeof(cl_mem), &ocl.s4);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 5, sizeof(cl_mem), &ocl.s5);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 6, sizeof(cl_mem), &ocl.s6);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 7, sizeof(cl_mem), &ocl.s7);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 8, sizeof(cl_mem), &ocl.s8);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 9, sizeof(cl_mem), &ocl.st0);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 10, sizeof(cl_mem), &ocl.st1);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 11, sizeof(cl_mem), &ocl.st2);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 12, sizeof(cl_mem), &ocl.st3);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 13, sizeof(cl_mem), &ocl.st4);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 14, sizeof(cl_mem), &ocl.st5);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 15, sizeof(cl_mem), &ocl.st6);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 16, sizeof(cl_mem), &ocl.st7);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 17, sizeof(cl_mem), &ocl.st8);
+  checkError(err, "setting collision_rebound_av_velocity arg 0", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 18, sizeof(cl_mem), &ocl.obstacles);
+  checkError(err, "setting collision_rebound_av_velocity arg 2", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 19, sizeof(cl_int), &params.nx);
+  checkError(err, "setting collision_rebound_av_velocity arg 3", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 20, sizeof(cl_int), &params.ny);
+  checkError(err, "setting collision_rebound_av_velocity arg 4", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 21, sizeof(cl_float), &params.omega);
+  checkError(err, "setting collision_rebound_av_velocity arg 4", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 22, sizeof(cl_mem), &ocl.global_u);
+  checkError(err, "setting collision_rebound_av_velocity arg 6", __LINE__);
+  err = clSetKernelArg(ocl.collision_rebound_av_velocity, 23, sizeof(cl_mem), &ocl.global_cells);
   checkError(err, "setting collision_rebound_av_velocity arg 7", __LINE__);
 
   // Enqueue kernel
-  size_t global[2] = {params.nx, params.ny};
-  err = clEnqueueNDRangeKernel(ocl.queue, ocl.propagate_collision_rebound_av_velocity,
+  size_t global[1] = {params.nx * params.ny};
+  err = clEnqueueNDRangeKernel(ocl.queue, ocl.collision_rebound_av_velocity,
                                1, NULL, global, NULL, 0, NULL, NULL);
-  checkError(err, "enqueueing propagate_collision_rebound_av_velocity kernel", __LINE__);
+  checkError(err, "enqueueing collision_rebound_av_velocity kernel", __LINE__);
 
   // Wait for kernel to finish
   err = clFinish(ocl.queue);
-  checkError(err, "waiting for propagate_collision_rebound_av_velocity kernel", __LINE__);
+  checkError(err, "waiting for collision_rebound_av_velocity kernel", __LINE__);
 
   return EXIT_SUCCESS;
 }
@@ -818,7 +876,9 @@ int initialise(const char* paramfile, const char* obstaclefile,
   // Create OpenCL kernels
   ocl->accelerate_flow = clCreateKernel(ocl->program, "accelerate_flow", &err);
   checkError(err, "creating accelerate_flow kernel", __LINE__);
-  ocl->propagate_collision_rebound_av_velocity = clCreateKernel(ocl->program, "propagate_collision_rebound_av_velocity", &err);
+  ocl->propagate = clCreateKernel(ocl->program, "propagate", &err);
+  checkError(err, "creating propagate kernel", __LINE__);
+  ocl->collision_rebound_av_velocity = clCreateKernel(ocl->program, "collision_rebound_av_velocity", &err);
   checkError(err, "creating collision_rebound kernel", __LINE__);
   ocl->reduce = clCreateKernel(ocl->program, "amd_reduce", &err);
   checkError(err, "creating reduce kernel", __LINE__);
@@ -981,8 +1041,9 @@ int finalise(const t_param* params, t_speed** cells_ptr, t_speed** tmp_cells_ptr
   clReleaseMemObject(ocl.st8);
   clReleaseKernel(ocl.reduce);
   clReleaseKernel(ocl.accelerate_flow);
+  clReleaseKernel(ocl.propagate);
   clReleaseKernel(ocl.finalReduce);
-  clReleaseKernel(ocl.propagate_collision_rebound_av_velocity);
+  clReleaseKernel(ocl.collision_rebound_av_velocity);
   clReleaseProgram(ocl.program);
   clReleaseCommandQueue(ocl.queue);
   clReleaseContext(ocl.context);
