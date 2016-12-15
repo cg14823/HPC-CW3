@@ -256,47 +256,47 @@ int main(int argc, char* argv[])
   // Write cells to OpenCL buffer
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s0, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, &s0, 0, NULL, NULL);
+    sizeof(float) * params.nx * params.ny, &s0, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
   printf("7\n");
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s1, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, &s1, 0, NULL, NULL);
+    sizeof(float) * params.nx * params.ny, &s1, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s2, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, &s2, 0, NULL, NULL);
+    sizeof(float) * params.nx * params.ny, &s2, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s3, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, &s3, 0, NULL, NULL);
+    sizeof(float) * params.nx * params.ny, &s3, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s4, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, &s4, 0, NULL, NULL);
+    sizeof(float) * params.nx * params.ny, &s4, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s5, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, &s5, 0, NULL, NULL);
+    sizeof(float) * params.nx * params.ny, &s5, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s6, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, &s6, 0, NULL, NULL);
+    sizeof(float) * params.nx * params.ny, &s6, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s7, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, &s7, 0, NULL, NULL);
+    sizeof(float) * params.nx * params.ny, &s7, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
   err = clEnqueueWriteBuffer(
     ocl.queue, ocl.s8, CL_TRUE, 0,
-    sizeof(cl_float) * params.nx * params.ny, &s8, 0, NULL, NULL);
+    sizeof(float) * params.nx * params.ny, &s8, 0, NULL, NULL);
   checkError(err, "writing cells data", __LINE__);
 
 
@@ -902,76 +902,76 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   ocl->st0 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->st1 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->st2 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->st3 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->st4 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->st5 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->st6 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->st7 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->st8 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
 
   ocl->s0 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->s1 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->s2 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->s3 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->s4 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->s5 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->s6 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->s7 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
   ocl->s8 = clCreateBuffer(
     ocl->context, CL_MEM_READ_WRITE,
-    sizeof(cl_float) * params->nx * params->ny, NULL, &err);
+    sizeof(float) * params->nx * params->ny, NULL, &err);
   checkError(err, "creating obstacles buffer", __LINE__);
 
   ocl->obstacles = clCreateBuffer(
