@@ -70,14 +70,16 @@ kernel void propagate(global float* s0, global float* s1, global float* s2,
 }
 
 kernel void collision_rebound_av_velocity(global float* s0, global float* s1, global float* s2,
-    global float* s3, global float* s4,
-    global float* s5, global float* s6, global float* s7, global float* s8,
-    global float* st0, global float* st1, global float* st2,
-    global float* st3, global float* st4,
-    global float* st5, global float* st6, global float* st7, global float* st8,
-                              global int* obstacles,int nx, int ny, float omega,
-                              global float* global_u,
-                              global int* global_cells)
+  global float* s3, global float* s4,
+  global float* s5, global float* s6, global float* s7, global float* s8,
+  global float* st0, global float* st1, global float* st2,
+  global float* st3, global float* st4,
+  global float* st5, global float* st6, global float* st7, global float* st8,
+  global int* obstacles, float omega,
+  global float* global_u,global int* global_cells,
+  local float* local_sum_u,local int* local_sum_cells,
+  global float* result_u,
+  global int* result_cells)
 {
   const float w0 = 4.0f / 9.0f;  /* weighting factor */
   const float w1 = 1.0f / 9.0f;  /* weighting factor */
@@ -173,24 +175,13 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
     global_u[index] =0.0f;
     global_cells[index] = 0;
   }
+  barrier(CLK_GLOBAL_MEM_FENCE);
 
-}
-
-kernel
-void amd_reduce(
-            global float* global_u,
-            global int* global_tot_cells,
-            local float* local_sum_u,
-            local int* local_sum_cells,
-            global float* result_u,
-            global int* result_cells)
-{
-  int global_index = get_global_id(0);
   int local_index = get_local_id(0);
   // Load data into local memory
 
-  local_sum_u[local_index] = global_u[global_index];
-  local_sum_cells[local_index] = global_tot_cells[global_index];
+  local_sum_u[local_index] = global_u[index];
+  local_sum_cells[local_index] = global_tot_cells[index];
 
   barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -211,6 +202,7 @@ void amd_reduce(
     result_cells[get_group_id(0)] = local_sum_cells[0];
   }
 }
+
 
 kernel void finalReduce(global float* result_u,
             global int* result_cells,
