@@ -101,27 +101,27 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
   if (!obstacles[index])
   {
     /* compute local density total */
-    float local_density = fst0+fst1
-                    +fst2+fst3
-                    +fst4+fst5
-                    +fst6+fst7
-                    +fst8;
+    float local_density = fst0+fst1[index]
+                    +fst2[index]+fst3[index]
+                    +fst4[index]+fst5[index]
+                    +fst6[index]+fst7[index]
+                    +fst8[index];
 
     /* compute x velocity component */
-    float u_x = (fst1
-                  + fst5
-                  + fst8
-                  - (fst3
-                     + fst6
-                     + fst7))
+    float u_x = (fst1[index]
+                  + fst5[index]
+                  + fst8[index]
+                  - (fst3[index]
+                     + fst6[index]
+                     + fst7[index]))
                  / local_density;
     /* compute y velocity component */
-    float u_y = (fst2
-                  + fst5
-                  + fst6
-                  - (fst4
-                     + fst7
-                     + fst8))
+    float u_y = (fst2[index]
+                  + fst5[index]
+                  + fst6[index]
+                  - (fst4[index]
+                     + fst7[index]
+                     + fst8[index]))
                  / local_density;
 
     /* velocity squared */
@@ -132,15 +132,15 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
     float lw2 = w2 * local_density;
 
     /* relaxation fstep */
-    s0[index] = fst0+ (w0 * local_density * (1.0f - 1.5f * u_sq) - fst0) *omega;
-    s1[index] = fst1+ (lw1 * (1.0f + 3.0f * (u_x + u_x * u_x) - 1.5f * u_y * u_y) - fst1) * omega;
-    s2[index] = fst2+ (lw1 * (1.0f + 3.0f * (u_y + u_y * u_y) - 1.5f * u_x * u_x) - fst2) * omega;
-    s3[index] = fst3+ (lw1 * (1.0f + 3.0f * (-u_x + u_x * u_x) - 1.5f * u_y * u_y) -fst3) * omega;
-    s4[index] = fst4+ (lw1 * (1.0f + 3.0f * (-u_y + u_y * u_y) - 1.5f * u_x *u_x) -fst4) * omega;
-    s5[index] = fst5+ (lw2 * (1.0f + 3.0f * (u_sq + u_x + u_y) + 9.0f * u_x * u_y) -fst5) * omega;
-    s6[index] = fst6+ (lw2 * (1.0f + 3.0f * (u_sq - u_x + u_y) - 9.0f * u_x * u_y) -fst6) * omega;
-    s7[index] = fst7+ (lw2 * (1.0f + 3.0f * (u_sq - u_x - u_y) + 9.0f * u_x * u_y) -fst7) * omega;
-    s8[index] = fst8+ (lw2 * (1.0f + 3.0f * (u_sq + u_x - u_y) - 9.0f * u_x * u_y) -fst8) * omega;
+    s0[index] = fst0[index]+ (w0 * local_density * (1.0f - 1.5f * u_sq) - fst0[index]) *omega;
+    s1[index] = fst1[index]+ (lw1 * (1.0f + 3.0f * (u_x + u_x * u_x) - 1.5f * u_y * u_y) - fst1[index]) * omega;
+    s2[index] = fst2[index]+ (lw1 * (1.0f + 3.0f * (u_y + u_y * u_y) - 1.5f * u_x * u_x) - fst2[index]) * omega;
+    s3[index] = fst3[index]+ (lw1 * (1.0f + 3.0f * (-u_x + u_x * u_x) - 1.5f * u_y * u_y) -fst3[index]) * omega;
+    s4[index] = fst4[index]+ (lw1 * (1.0f + 3.0f * (-u_y + u_y * u_y) - 1.5f * u_x *u_x) -fst4[index]) * omega;
+    s5[index] = fst5[index]+ (lw2 * (1.0f + 3.0f * (u_sq + u_x + u_y) + 9.0f * u_x * u_y) -fst5[index]) * omega;
+    s6[index] = fst6[index]+ (lw2 * (1.0f + 3.0f * (u_sq - u_x + u_y) - 9.0f * u_x * u_y) -fst6[index]) * omega;
+    s7[index] = fst7[index]+ (lw2 * (1.0f + 3.0f * (u_sq - u_x - u_y) + 9.0f * u_x * u_y) -fst7[index]) * omega;
+    s8[index] = fst8[index]+ (lw2 * (1.0f + 3.0f * (u_sq + u_x - u_y) - 9.0f * u_x * u_y) -fst8[index]) * omega;
 
 
     local_density = s0[index]+s1[index]
@@ -168,14 +168,14 @@ kernel void collision_rebound_av_velocity(global float* s0, global float* s1, gl
 
   }
   else{
-    s1[index] = fst3;
-    s2[index] = fst4;
-    s3[index] = fst1;
-    s4[index] = fst2;
-    s5[index] = fst7;
-    s6[index] = fst8;
-    s7[index] = fst5;
-    s8[index] = fst6;
+    s1[index] = fst3[index];
+    s2[index] = fst4[index];
+    s3[index] = fst1[index];
+    s4[index] = fst2[index];
+    s5[index] = fst7[index];
+    s6[index] = fst8[index];
+    s7[index] = fst5[index];
+    s8[index] = fst6[index];
 
     local_sum_u[local_index] =0.0f;
     local_sum_cells[local_index] = 0;
