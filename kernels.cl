@@ -69,13 +69,13 @@ kernel void propagate(global t_speed* cells,
 	tmp_cells[ii * nx + jj].speeds[8] = cells[y_n * nx + x_w].speeds[8]; /* south-east */
 }
 
-kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles,int nx, int ny, float omega)
+kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles, float omega, global float* result_u,global int* result_cells,  local float* local_sum_u, local int* local_sum_cells)
 {
   const float w0 = 4.0f / 9.0f;  /* weighting factor */
   const float w1 = 1.0f / 9.0f;  /* weighting factor */
   const float w2 = 1.0f / 36.0f; /* weighting factor */
-  int jj = get_global_id(0);
-  int ii = get_global_id(1);
+  int gii = get_global_id(0);
+  int local_index = get_local_id(0);
 
   /* loop over the cells in the grid
   ** NB the collision step is called after
@@ -83,30 +83,31 @@ kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, 
   ** are in the scratch-space grid */
 
         /* don't consider occupied cells */
-  if (!obstacles[ii * nx + jj])
+
+
+  if (!obstacles[gii])
   {
-    int cellAccess = ii * nx + jj;
     /* compute local density total */
     float local_density = 0.0f;
     for (int kk = 0; kk < NSPEEDS; kk++)
     {
-      local_density += tmp_cells[cellAccess].speeds[kk];
+      local_density += tmp_cells[gii].speeds[kk];
     }
     /* compute x velocity component */
-    float u_x = (tmp_cells[cellAccess].speeds[1]
-                  + tmp_cells[cellAccess].speeds[5]
-                  + tmp_cells[cellAccess].speeds[8]
-                  - (tmp_cells[cellAccess].speeds[3]
-                     + tmp_cells[cellAccess].speeds[6]
-                     + tmp_cells[cellAccess].speeds[7]))
+    float u_x = (tmp_cells[gii].speeds[1]
+                  + tmp_cells[gii].speeds[5]
+                  + tmp_cells[gii].speeds[8]
+                  - (tmp_cells[gii].speeds[3]
+                     + tmp_cells[gii].speeds[6]
+                     + tmp_cells[gii].speeds[7]))
                  / local_density;
     /* compute y velocity component */
-    float u_y = (tmp_cells[cellAccess].speeds[2]
-                  + tmp_cells[cellAccess].speeds[5]
-                  + tmp_cells[cellAccess].speeds[6]
-                  - (tmp_cells[cellAccess].speeds[4]
-                     + tmp_cells[cellAccess].speeds[7]
-                     + tmp_cells[cellAccess].speeds[8]))
+    float u_y = (tmp_cells[gii].speeds[2]
+                  + tmp_cells[gii].speeds[5]
+                  + tmp_cells[gii].speeds[6]
+                  - (tmp_cells[gii].speeds[4]
+                     + tmp_cells[gii].speeds[7]
+                     + tmp_cells[gii].speeds[8]))
                  / local_density;
 
     /* velocity squared */
@@ -128,74 +129,42 @@ kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, 
 
     /* relaxation step */
 
-    for (int kk = 0; kk < NSPEEDS; kk++)
-      {
-        cells[cellAccess].speeds[kk] = tmp_cells[cellAccess].speeds[kk]
-                                                + omega
-                                                * (d_equ[kk] - tmp_cells[cellAccess].speeds[kk]);
-      }
-  }
-  else{
-    cells[ii * nx + jj].speeds[1] = tmp_cells[ii * nx + jj].speeds[3];
-    cells[ii * nx + jj].speeds[2] = tmp_cells[ii * nx + jj].speeds[4];
-    cells[ii * nx + jj].speeds[3] = tmp_cells[ii * nx + jj].speeds[1];
-    cells[ii * nx + jj].speeds[4] = tmp_cells[ii * nx + jj].speeds[2];
-    cells[ii * nx + jj].speeds[5] = tmp_cells[ii * nx + jj].speeds[7];
-    cells[ii * nx + jj].speeds[6] = tmp_cells[ii * nx + jj].speeds[8];
-    cells[ii * nx + jj].speeds[7] = tmp_cells[ii * nx + jj].speeds[5];
-    cells[ii * nx + jj].speeds[8] = tmp_cells[ii * nx + jj].speeds[6];
-  }
-
-}
-
-kernel void av_velocity(global t_speed* cells,
-                        global int* obstacles,
-                        global float* result_u,
-                        global int* result_cells,
-                        local float* local_sum_u, local int* local_sum_cells)
-{
-    int    tot_cells = 0;  /* no. of cells used in calculation */
-    float tot_u;          /* accumulated magnitudes of velocity for each cell */
-
-    /* initialise */
-    tot_u = 0.0f;
-
-   int gii = get_global_id(0);
-   int local_index = get_local_id(0);
-
-  /* ignore occupied cells */
-  if (!obstacles[gii])
-  {
-    /* local density total */
-    float local_density = 0.0f;
-
+    local_density =0.0f;
     for (int kk = 0; kk < NSPEEDS; kk++)
     {
+      cells[gii].speeds[kk] = tmp_cells[gii].speeds[kk]
+                                             + omega
+                                             * (d_equ[kk] - tmp_cells[gii].speeds[kk]);
       local_density += cells[gii].speeds[kk];
     }
 
-    /* x-component of velocity */
-    float u_x = (cells[gii].speeds[1]
-                  + cells[gii].speeds[5]
-                  + cells[gii].speeds[8]
-                  - (cells[gii].speeds[3]
-                     + cells[gii].speeds[6]
-                     + cells[gii].speeds[7]));
-    /* compute y velocity component */
-    float u_y = (cells[gii].speeds[2]
-                  + cells[gii].speeds[5]
-                  + cells[gii].speeds[6]
-                  - (cells[gii].speeds[4]
-                     + cells[gii].speeds[7]
-                     + cells[gii].speeds[8]));
-
-    /* accumulate the norm of x- and y- velocity components */
-    local_sum_u[local_index] =sqrt((u_x * u_x) + (u_y * u_y))/local_density;
-    local_sum_cells[local_index] = 1;
+    u_x = (cells[gii].speeds[1]
+                   + cells[gii].speeds[5]
+                   + cells[gii].speeds[8]
+                   - (cells[gii].speeds[3]
+                      + cells[gii].speeds[6]
+                      + cells[gii].speeds[7]));
+     /* compute y velocity component */
+    u_y = (cells[gii].speeds[2]
+                   + cells[gii].speeds[5]
+                   + cells[gii].speeds[6]
+                   - (cells[gii].speeds[4]
+                      + cells[gii].speeds[7]
+                      + cells[gii].speeds[8]));
+    local_sum_u[local_gii] =sqrt((u_x * u_x) + (u_y * u_y))/local_density;
+    local_sum_cells[local_gii] = 1;
   }
   else{
-    local_sum_u[local_index] =0.0f;
-    local_sum_cells[local_index] = 0;
+    cells[gii].speeds[1] = tmp_cells[gii].speeds[3];
+    cells[gii].speeds[2] = tmp_cells[gii].speeds[4];
+    cells[gii].speeds[3] = tmp_cells[gii].speeds[1];
+    cells[gii].speeds[4] = tmp_cells[gii].speeds[2];
+    cells[gii].speeds[5] = tmp_cells[gii].speeds[7];
+    cells[gii].speeds[6] = tmp_cells[gii].speeds[8];
+    cells[gii].speeds[7] = tmp_cells[gii].speeds[5];
+    cells[gii].speeds[8] = tmp_cells[gii].speeds[6];
+    local_sum_u[local_gii] =0.0f;
+    local_sum_cells[local_gii] = 0;
   }
 
   barrier(CLK_LOCAL_MEM_FENCE);
