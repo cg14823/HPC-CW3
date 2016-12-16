@@ -353,9 +353,9 @@ int av_velocityK(const t_param params, t_speed* cells, int* obstacles, t_ocl ocl
   checkError(err, "setting av_velocity arg 0", __LINE__);
   err = clSetKernelArg(ocl.av_velocity, 1, sizeof(cl_mem), &ocl.obstacles);
   checkError(err, "setting av_velocity arg 1", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 2, sizeof(cl_mem),&ocl.result_u);
+  err = clSetKernelArg(ocl.av_velocity, 2, sizeof(cl_mem),&ocl.results_reduce_u);
   checkError(err, "setting av_velocity arg 4", __LINE__);
-  err = clSetKernelArg(ocl.av_velocity, 3, sizeof(cl_mem),&ocl.result_cells);
+  err = clSetKernelArg(ocl.av_velocity, 3, sizeof(cl_mem),&ocl.results_reduce_cells);
   checkError(err, "setting av_velocity arg 5", __LINE__);
   err = clSetKernelArg(ocl.av_velocity, 4, sizeof(cl_float)*params.ny,NULL);
   checkError(err, "setting av_velocity arg 4", __LINE__);
@@ -446,10 +446,9 @@ int reduce (t_ocl ocl, const t_param params, int tt){
   checkError(err, "setting reduce arg 5", __LINE__);
 
   // Enqueue kernel
-  global[0] = params.nx;
-  local[0] = params.nx;
+  size_t global[1] = {params.nx};
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.finalReduce,
-                               1, NULL, global, local, 0, NULL, NULL);
+                               1, NULL, global, global, 0, NULL, NULL);
   checkError(err, "enqueueing finalReduce kernel", __LINE__);
   // Wait for kernel to finish
   err = clFinish(ocl.queue);
