@@ -151,8 +151,8 @@ kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, 
                    - (cells[gii].speeds[4]
                       + cells[gii].speeds[7]
                       + cells[gii].speeds[8]));
-    local_sum_u[local_gii] =sqrt((u_x * u_x) + (u_y * u_y))/local_density;
-    local_sum_cells[local_gii] = 1;
+    local_sum_u[local_index] =sqrt((u_x * u_x) + (u_y * u_y))/local_density;
+    local_sum_cells[local_index] = 1;
   }
   else{
     cells[gii].speeds[1] = tmp_cells[gii].speeds[3];
@@ -163,8 +163,8 @@ kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, 
     cells[gii].speeds[6] = tmp_cells[gii].speeds[8];
     cells[gii].speeds[7] = tmp_cells[gii].speeds[5];
     cells[gii].speeds[8] = tmp_cells[gii].speeds[6];
-    local_sum_u[local_gii] =0.0f;
-    local_sum_cells[local_gii] = 0;
+    local_sum_u[local_index] =0.0f;
+    local_sum_cells[local_index] = 0;
   }
 
   barrier(CLK_LOCAL_MEM_FENCE);
