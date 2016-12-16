@@ -146,5 +146,111 @@ kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, 
     cells[ii * nx + jj].speeds[8] = tmp_cells[ii * nx + jj].speeds[6];
   }
 
+}
 
+kernel void av_velocity(global t_speed* cells,
+                        global int* obstacles,
+                        global float* result_u,
+                        global int* result_cells,
+                        local float* local_sum_u, local int* local_sum_cells)
+{
+    int    tot_cells = 0;  /* no. of cells used in calculation */
+    float tot_u;          /* accumulated magnitudes of velocity for each cell */
+
+    /* initialise */
+    tot_u = 0.0f;
+
+   int gii = get_global_id(0);
+   int local_index = get_local_id(0);
+
+  /* ignore occupied cells */
+  if (!obstacles[gii])
+  {
+    /* local density total */
+    float local_density = 0.0f;
+
+    for (int kk = 0; kk < NSPEEDS; kk++)
+    {
+      local_density += cells[gii].speeds[kk];
+    }
+
+    /* x-component of velocity */
+    float u_x = (cells[gii].speeds[1]
+                  + cells[gii].speeds[5]
+                  + cells[gii].speeds[8]
+                  - (cells[gii].speeds[3]
+                     + cells[gii].speeds[6]
+                     + cells[gii].speeds[7]));
+    /* compute y velocity component */
+    float u_y = (cells[gii].speeds[2]
+                  + cells[gii].speeds[5]
+                  + cells[gii].speeds[6]
+                  - (cells[gii].speeds[4]
+                     + cells[gii].speeds[7]
+                     + cells[gii].speeds[8]));
+
+    /* accumulate the norm of x- and y- velocity components */
+    local_sum_u[local_index] =sqrt((u_x * u_x) + (u_y * u_y))/local_density;
+    local_sum_cells[local_index] = 1;
+  }
+  else{
+    local_sum_u[local_index] =0.0f;
+    local_sum_cells[local_index] = 0;
+  }
+
+  barrier(CLK_LOCAL_MEM_FENCE);
+
+  for(int offset = get_local_size(0) / 2;
+        offset > 0;
+        offset >>= 1) {
+
+      if (local_index < offset) {
+        local_sum_u[local_index] += local_sum_u[local_index + offset];
+        local_sum_cells[local_index] += local_sum_cells[local_index + offset];
+      }
+
+      barrier(CLK_LOCAL_MEM_FENCE);
+    }
+
+  if (local_index == 0) {
+    result_u[get_group_id(0)] = local_sum_u[0];
+    result_cells[get_group_id(0)] = local_sum_cells[0];
+  }
+}
+
+// ** Do the reduction insted of powers of two by offset size so no modulus needed
+// reduce cols localy
+// reduce each local group
+//that should work??
+
+kernel void finalReduce(global float* result_u,
+            global int* result_cells,
+            global float* av_vels,
+            local float* local_sum_u,
+            local int* local_sum_cells,
+           int tt)
+{
+  int local_index = get_global_id(0);
+  // Load data into local memory
+
+  local_sum_u[local_index] = result_u[local_index];
+  local_sum_cells[local_index] = result_cells[local_index];
+
+  barrier(CLK_LOCAL_MEM_FENCE);
+
+  for(int offset = get_local_size(0) / 2;
+        offset > 0;
+        offset >>= 1) {
+
+      if (local_index < offset) {
+        local_sum_u[local_index] += local_sum_u[local_index + offset];
+        local_sum_cells[local_index] += local_sum_cells[local_index + offset];
+      }
+
+      barrier(CLK_LOCAL_MEM_FENCE);
+    }
+
+  if (local_index == 0) {
+    av_vels[tt] = local_sum_u[0]/(float)local_sum_cells[0];
+  }
 }
