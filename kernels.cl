@@ -1,4 +1,4 @@
-823#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #define NSPEEDS         9
 
@@ -69,7 +69,7 @@ kernel void propagate(global t_speed* cells,
 	tmp_cells[ii * nx + jj].speeds[8] = cells[y_n * nx + x_w].speeds[8]; /* south-east */
 }
 
-kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles,int nx, int ny)
+kernel void collision_rebound(global t_speed* cells, global t_speed* tmp_cells, global int* obstacles,int nx, int ny, float omega)
 {
   const float w0 = 4.0f / 9.0f;  /* weighting factor */
   const float w1 = 1.0f / 9.0f;  /* weighting factor */
