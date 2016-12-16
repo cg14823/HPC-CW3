@@ -384,15 +384,15 @@ int collision(const t_param params, t_speed* cells, t_speed* tmp_cells, int* obs
           /* zero velocity density: weight w0 */
           d_equ[0] = w0 * local_density * (1.0f - 1.5f * u_sq);
           /* axis speeds: weight w1 */
-          d_equ[1] = w1 * local_density * (1.0f + 3f * (u_x + u_x * u_x) - 1.5f * u_y * u_y);
-          d_equ[2] = w1 * local_density * (1.0f + 3f * (u_y + u_y * u_y) - 1.5f * u_x * u_x);
-          d_equ[3] = w1 * local_density * (1.0f + 3f * (-u_x + u_x * u_x) - 1.5f * u_y * u_y);
-          d_equ[4] = w1 * local_density * (1.0f + 3f * (-u_y + u_y * u_y) - 1.5f * u_x *u_x);
+          d_equ[1] = w1 * local_density * (1.0f + 3.0f * (u_x + u_x * u_x) - 1.5f * u_y * u_y);
+          d_equ[2] = w1 * local_density * (1.0f + 3.0f * (u_y + u_y * u_y) - 1.5f * u_x * u_x);
+          d_equ[3] = w1 * local_density * (1.0f + 3.0f * (-u_x + u_x * u_x) - 1.5f * u_y * u_y);
+          d_equ[4] = w1 * local_density * (1.0f + 3.0f * (-u_y + u_y * u_y) - 1.5f * u_x *u_x);
           /* diagonal speeds: weight w2 */
-          d_equ[5] = w2 * local_density * (1.0f + 3f * (u_sq + u_x + u_y) + 9f * u_x * u_y);
-          d_equ[6] = w2 * local_density * (1.0f + 3f * (u_sq - u_x + u_y) - 9f * u_x * u_y);
-          d_equ[7] = w2 * local_density * (1.0f + 3f * (u_sq - u_x - u_y) + 9f * u_x * u_y);
-          d_equ[8] = w2 * local_density * (1.0f + 3f * (u_sq + u_x - u_y) - 9f * u_x * u_y);
+          d_equ[5] = w2 * local_density * (1.0f + 3.0f * (u_sq + u_x + u_y) + 9.0f * u_x * u_y);
+          d_equ[6] = w2 * local_density * (1.0f + 3.0f * (u_sq - u_x + u_y) - 9.0f * u_x * u_y);
+          d_equ[7] = w2 * local_density * (1.0f + 3.0f * (u_sq - u_x - u_y) + 9.0f * u_x * u_y);
+          d_equ[8] = w2 * local_density * (1.0f + 3.0f * (u_sq + u_x - u_y) - 9.0f * u_x * u_y);
 
           /* relaxation step */
 
@@ -496,15 +496,15 @@ int initialise(const char* paramfile, const char* obstaclefile,
 
   if (retval != 1) die("could not read param file: reynolds_dim", __LINE__, __FILE__);
 
-  retval = fscanf(fp, "%lf\n", &(params->density));
+  retval = fscanf(fp, "%f\n", &(params->density));
 
   if (retval != 1) die("could not read param file: density", __LINE__, __FILE__);
 
-  retval = fscanf(fp, "%lf\n", &(params->accel));
+  retval = fscanf(fp, "%f\n", &(params->accel));
 
   if (retval != 1) die("could not read param file: accel", __LINE__, __FILE__);
 
-  retval = fscanf(fp, "%lf\n", &(params->omega));
+  retval = fscanf(fp, "%f\n", &(params->omega));
 
   if (retval != 1) die("could not read param file: omega", __LINE__, __FILE__);
 
